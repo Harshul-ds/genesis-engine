@@ -48,5 +48,4 @@ This project is an independent initiative by me, [Your Name]. I am a data profes
 
 I'm always open to discussing the data, the methodology, or potential collaborations.
 
-*   **LinkedIn:** [Link to your LinkedIn profile]
-*   **Personal Site / Blog:** [Link to your personal website where you will post your insights]
+*   **LinkedIn:** [www.linkedin.com/in/harshul-tandan]
