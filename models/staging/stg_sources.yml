@@ -9,8 +9,8 @@ sources:
 
     # Now, list the tables within that dataset that you want dbt to know about
     tables:
-      - name: raw_arxiv
-        description: "Raw data of research papers ingested daily from the arXiv API."
+      # - name: raw_arxiv
+      #   description: "Raw data of research papers ingested daily from the arXiv API."
       - name: raw_github_repos
         description: "Raw data of repository information from the GitHub API."
       - name: raw_huggingface_models
