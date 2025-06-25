@@ -11,7 +11,9 @@ dependencies = [
     "python-dotenv",         # This provides the 'dotenv' module
     "db-dtypes",
     "google-auth",           # Explicitly add this for google.oauth2
-    "lxml"                   # Add this for parsing arXiv's XML response, it's better than the built-in
+    "lxml",                  # Add this for parsing arXiv's XML response, it's better than the built-in
+    "PyGithub", # For GitHub API
+    "huggingface_hub"
 ]
 
 [project.optional-dependencies]

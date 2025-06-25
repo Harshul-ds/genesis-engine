@@ -53,15 +53,31 @@ def fetch_arxiv_data(technologies_df):
     papers = []
     # The arXiv API uses a specific XML namespace, which we need to include when finding tags
     namespace = '{http://www.w3.org/2005/Atom}'
+    
     for entry in root.findall(f'{namespace}entry'):
+        # The paper ID is a full URL like 'http://arxiv.org/abs/2401.12345v1'
+        try:
+            paper_id_full_url = entry.find(f'{namespace}id').text
+            # We split by '/abs/' and take the last part: '2401.12345v1'
+            paper_id_with_version = paper_id_full_url.split('/abs/')[-1]
+            # We then split by 'v' and take the first part to remove the version number: '2401.12345'
+            # This gives us the clean, canonical paper ID.
+            paper_id_clean = paper_id_with_version.split('v')[0]
+        except (IndexError, AttributeError):
+            # If the ID format is unexpected, skip this paper to avoid errors
+            print(f"  > WARNING: Could not parse paper_id from URL: {paper_id_full_url}. Skipping.")
+            continue
+
         paper_data = {
-            'paper_id': entry.find(f'{namespace}id').text,
+            'paper_id': paper_id_clean, # <-- Use the clean ID
             'published_date': entry.find(f'{namespace}published').text,
             'updated_date': entry.find(f'{namespace}updated').text,
-            'title': entry.find(f'{namespace}title').text,
+            'title': entry.find(f'{namespace}title').text.strip(),
             'summary': entry.find(f'{namespace}summary').text.strip(),
             'authors': ', '.join([author.find(f'{namespace}name').text for author in entry.findall(f'{namespace}author')])
         }
+        
+        
         papers.append(paper_data)
         
     if not papers:
