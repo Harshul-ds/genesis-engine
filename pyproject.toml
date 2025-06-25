@@ -1,0 +1,25 @@
+[project]
+name = "genesis-engine"
+version = "0.1.0"
+description = "Data ingestion and analysis pipelines for the Genesis Engine project."
+requires-python = ">=3.11"
+
+dependencies = [
+    "pandas",
+    "requests",
+    "google-cloud-bigquery",
+    "python-dotenv",         # This provides the 'dotenv' module
+    "db-dtypes",
+    "google-auth",           # Explicitly add this for google.oauth2
+    "lxml"                   # Add this for parsing arXiv's XML response, it's better than the built-in
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "black",
+]
+
+[tool.setuptools]
+packages = ["scripts"]
+package-dir = {"" = "src"}
