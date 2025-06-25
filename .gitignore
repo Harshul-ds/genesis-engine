@@ -1,0 +1,21 @@
+# Ignore Python virtual environment
+.venv/
+
+# Ignore local environment variables
+.env
+
+# Ignore all secret files
+.secrets/
+*.json
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore dbt generated files
+target/
+dbt_packages/
+logs/
+
+# Ignore egg-info directories
+*.egg-info/
