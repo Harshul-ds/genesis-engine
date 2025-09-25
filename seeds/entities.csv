@@ -1,0 +1,21 @@
+canonical_name,entity_type,primary_domain,github_org_name,huggingface_org_name,semantic_scholar_author_id
+Google,Big Tech,google.com,google,google
+Meta AI,Big Tech,ai.meta.com,facebookresearch,meta-llama
+Microsoft,Big Tech,microsoft.com,microsoft,microsoft
+Apple,Big Tech,apple.com,apple,apple
+Amazon,Big Tech,amazon.com,amzn,amazon
+NVIDIA,Hardware,nvidia.com,NVIDIA,nvidia
+OpenAI,AI Lab,openai.com,openai,openai
+Anthropic,AI Lab,anthropic.com,anthropics,anthropic
+Mistral AI,AI Lab,mistral.ai,mistralai,mistralai
+Cohere,AI Lab,cohere.com,cohere-ai,cohere
+DeepSeek AI,AI Lab,deepseek.com,deepseek-ai,deepseek-ai
+Hugging Face,AI Platform,huggingface.co,huggingface,huggingface
+Databricks,Data & AI,databricks.com,databricks,databricks
+Snowflake,Data & AI,snowflake.com,snowflakedb,snowflake
+Stability AI,AI Lab,stability.ai,Stability-AI,stabilityai
+EleutherAI,Research Org,eleuther.ai,EleutherAI,EleutherAI
+Together AI,AI Platform,together.ai,togethercomputer,togethercomputer
+Stanford University,University,stanford.edu,stanford-crfm,stanford
+UC Berkeley,University,berkeley.edu,ucb-bar,berkeley-nest
+Carnegie Mellon University,University,cmu.edu,CMU-Perceptual-Computing-Lab,cmu-llm
