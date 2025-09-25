@@ -1,7 +1,7 @@
 // src/pages/api/generate.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 
-const HF_API_BASE_URL = "https://api-inference.huggingface.co/models/"\;
+const HF_API_BASE_URL = "https://api-inference.huggingface.co/models/";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const hfToken = process.env.HUGGINGFACE_TOKEN;
@@ -26,9 +26,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   history.forEach(msg => {
     // We map 'system' role to 'user' for this simple template, as it's for observations.
     const role = msg.role === 'system' ? 'user' : msg.role;
-    prompt += `<|start_header_id|>${role}<|end_header_id|>\n\n${msg.content}<|eot_id|>` ;
+    prompt += `<|start_header_id|>${role}<|end_header_id|>nn${msg.content}<|eot_id|>` ;
   });
-  prompt += `<|start_header_id|>assistant<|end_header_id|>\n\n` ;
+  prompt += `<|start_header_id|>assistant<|end_header_id|>nn` ;
 
   try {
     const response = await fetch(modelUrl, {
