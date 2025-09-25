@@ -1,7 +1,7 @@
 // src/pages/api/generate.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 
-const HF_API_BASE_URL = "https://api-inference.huggingface.co/models/";
+const HF_API_BASE_URL = "https://api-inference.huggingface.co/models/"\;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const hfToken = process.env.HUGGINGFACE_TOKEN;
@@ -16,19 +16,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Model ID is required.' });
   }
   
-  // Dynamically construct the correct Hugging Face Inference API URL
   const modelUrl = `${HF_API_BASE_URL}${model}` ;
   console.log(`[generate.ts] Calling Hugging Face Inference API at: ${modelUrl}` );
 
   // This is the specific chat template required by Llama 3 and many other instruct models.
-  // It ensures the model understands the conversational history correctly.
   let prompt = "<|begin_of_text|>";
   history.forEach(msg => {
-    // We map 'system' role to 'user' for this simple template, as it's for observations.
     const role = msg.role === 'system' ? 'user' : msg.role;
-    prompt += `<|start_header_id|>${role}<|end_header_id|>nn${msg.content}<|eot_id|>` ;
+    prompt += `<|start_header_id|>${role}<|end_header_id|>\n\n${msg.content}<|eot_id|>` ;
   });
-  prompt += `<|start_header_id|>assistant<|end_header_id|>nn` ;
+  prompt += `<|start_header_id|>assistant<|end_header_id|>\n\n` ;
 
   try {
     const response = await fetch(modelUrl, {
@@ -41,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         inputs: prompt,
         parameters: {
           max_new_tokens: 1024,
-          return_full_text: false, // We only want the AI's response, not our original prompt
+          return_full_text: false,
         }
       }),
     });
