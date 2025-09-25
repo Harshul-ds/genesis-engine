@@ -1,0 +1,7 @@
+# .vercelignore
+
+# Ignore the entire data pipeline directory
+data-pipeline/
+
+# Ignore any other root files not needed for the frontend build
+pyproject.toml
