@@ -1,65 +1,111 @@
 // src/pages/api/generate.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 
-const HF_API_BASE_URL = "https://api-inference.huggingface.co/models/"\;
+const FIREWORKS_API_URL = "https://api.fireworks.ai/inference/v1/chat/completions";
+
+// Helper function to write structured events to the stream
+const writeEvent = (res: NextApiResponse, type: string, payload: any) => {
+  res.write(`data: ${JSON.stringify({ type, payload })}\n\n`);
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const hfToken = process.env.HUGGINGFACE_TOKEN;
-  if (!hfToken) {
-    console.error("[generate.ts] CRITICAL ERROR: HUGGINGFACE_TOKEN is not configured.");
-    return res.status(500).json({ error: 'Hugging Face token not configured.' });
+  const fireworksApiKey = process.env.FIREWORKS_API_KEY;
+
+  if (!fireworksApiKey) {
+    writeEvent(res, 'error', { message: 'Fireworks API key not configured.' });
+    res.end();
+    return;
   }
 
-  const { history, model } = req.body; 
+  const { history, model } = req.body;
 
   if (!model) {
-    return res.status(400).json({ error: 'Model ID is required.' });
+    writeEvent(res, 'error', { message: 'Model ID is required.' });
+    res.end();
+    return;
   }
-  
-  const modelUrl = `${HF_API_BASE_URL}${model}` ;
-  console.log(`[generate.ts] Calling Hugging Face Inference API at: ${modelUrl}` );
-
-  // This is the specific chat template required by Llama 3 and many other instruct models.
-  let prompt = "<|begin_of_text|>";
-  history.forEach(msg => {
-    const role = msg.role === 'system' ? 'user' : msg.role;
-    prompt += `<|start_header_id|>${role}<|end_header_id|>\n\n${msg.content}<|eot_id|>` ;
-  });
-  prompt += `<|start_header_id|>assistant<|end_header_id|>\n\n` ;
 
   try {
-    const response = await fetch(modelUrl, {
+    console.log(`[generate.ts] Making a DIRECT streaming call to Fireworks AI for model '${model}'...`);
+
+    // Set up streaming response headers
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const response = await fetch(FIREWORKS_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${hfToken}` ,
+        'Authorization': `Bearer ${fireworksApiKey}`,
         'Content-Type': 'application/json',
+        'Accept': 'text/event-stream',
       },
       body: JSON.stringify({
-        inputs: prompt,
-        parameters: {
-          max_new_tokens: 1024,
-          return_full_text: false,
-        }
+        model: model,
+        messages: history,
+        stream: true,
+        max_tokens: 2048,
+        temperature: 0.7,
       }),
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error(`Hugging Face API Error for model ${model}:` , errorData);
-      return res.status(response.status).json({ 
-        error: `Failed to get response from Hugging Face model: ${model}` , 
-        details: errorData 
-      });
+      console.error(`Fireworks API error: ${response.status} - ${response.statusText}`);
+      writeEvent(res, 'error', { message: `Fireworks API error: ${response.statusText}` });
+      res.end();
+      return;
     }
 
-    const data = await response.json();
-    const generatedText = data[0]?.generated_text || "";
-    
-    console.log(`[generate.ts] Successfully received response from ${model}.` );
-    res.status(200).json({ text: generatedText.trim() });
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
 
+    if (!reader) {
+      throw new Error('Response body is null');
+    }
+
+    let buffer = '';
+    let fullThought = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) {
+        // Send final completion event
+        writeEvent(res, 'stream_end', { message: "AI has finished generating its thought." });
+        res.end();
+        break;
+      }
+
+      const chunk = decoder.decode(value);
+      buffer += chunk;
+
+      // Process complete lines from buffer
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const data = JSON.parse(line.substring(6));
+
+            if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) {
+              const content = data.choices[0].delta.content;
+              fullThought += content;
+
+              // Send structured thought chunk event instead of raw text
+              writeEvent(res, 'thought_chunk', { text: content });
+            }
+          } catch (e) {
+            // Skip malformed JSON lines
+            continue;
+          }
+        }
+      }
+    }
   } catch (error) {
-    console.error(`Error calling Hugging Face model ${model}:` , error);
-    res.status(500).json({ error: 'An unexpected error occurred.' });
+    console.error('Error in generate API:', error);
+    writeEvent(res, 'error', { message: error.message });
+    res.end();
   }
 }

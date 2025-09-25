@@ -1,7 +1,7 @@
 //src/lib/clientTools.ts
 
 // Defines the structure of a single prompt component record
-interface PromptComponent {
+export interface PromptComponent {
   id: number;
   term: string;
   content: string;
@@ -75,6 +75,58 @@ export async function searchTheWeb(query: string): Promise<SearchResult[] | stri
   }
 }
 
+// A "Tool" to suggest goals based on topic and personas
+export async function suggestGoals(appData: AppData, topic: string, personas: string[]): Promise<string[] | string> {
+  console.log(`🤖 ACTION: Suggesting goals for topic: ${topic} with personas: ${personas.join(', ')}`);
+
+  try {
+    // For now, return some intelligent defaults based on the topic
+    // In a real implementation, this could call an AI service or use predefined templates
+
+    const baseGoals = [
+      `Create a comprehensive business plan for ${topic}`,
+      `Write a detailed technical guide about ${topic}`,
+      `Develop marketing content and strategy for ${topic}`,
+      `Design an educational course on ${topic}`,
+      `Build a product roadmap for ${topic} solutions`,
+      `Create research documentation for ${topic}`,
+      `Develop case studies and examples for ${topic}`,
+      `Design user experience flows for ${topic} applications`
+    ];
+
+    // Add persona-specific goals if personas are provided
+    if (personas.length > 0) {
+      const personaGoals = personas.flatMap(persona =>
+        appData.personas
+          .filter(p => p.term === persona)
+          .map(p => {
+            switch (p.term) {
+              case 'PragmaticEngineerPersona':
+                return `Design technical architecture for ${topic} systems`;
+              case 'CreativeDesignerPersona':
+                return `Create visual design concepts for ${topic} interfaces`;
+              case 'BusinessStrategistPersona':
+                return `Develop market analysis and strategy for ${topic}`;
+              case 'EducatorPersona':
+                return `Design educational materials and curriculum for ${topic}`;
+              case 'ResearcherPersona':
+                return `Conduct research methodology for ${topic} studies`;
+              default:
+                return `Apply ${p.term} perspective to ${topic} development`;
+            }
+          })
+      );
+      baseGoals.push(...personaGoals);
+    }
+
+    // Return top 5 most relevant goals
+    return baseGoals.slice(0, 5);
+  } catch (error) {
+    console.error('Goal suggestion error:', error);
+    return `Error: Failed to suggest goals for '${topic}'. ${error.message}`;
+  }
+}
+
 // This is a "tool belt" object that maps the function names (as strings) to the actual functions.
 // The AI will generate the name, and we will use this object to call the correct function.
 export const toolbelt = {
@@ -83,4 +135,5 @@ export const toolbelt = {
   listAvailableTasks,
   getTaskDetails,
   searchTheWeb,
+  suggestGoals,
 };

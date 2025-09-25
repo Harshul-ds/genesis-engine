@@ -2,43 +2,52 @@
 "use client";
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 
-const HARDCODED_PERSONAS = [
-  { term: 'PragmaticEngineer', description: 'A pragmatic software engineer focused on practical solutions' },
-  { term: 'ResearchScientist', description: 'A research scientist focused on innovation and discovery' },
-  { term: 'TechnicalWriter', description: 'A technical writer who excels at clear communication' },
-  { term: 'ProductManager', description: 'A product manager focused on user needs and business value' }
-];
+interface PersonaSelectorProps {
+  appData: any;
+  onConfirm: (personas: string[]) => void;
+  disabled?: boolean;
+}
 
-export function PersonaSelector() {
-  const [selectedPersona, setSelectedPersona] = useState<string>('');
+export function PersonaSelector({ appData, onConfirm, disabled = false }: PersonaSelectorProps) {
+  const [selectedPersonas, setSelectedPersonas] = useState<string[]>([]);
+
+  const handlePersonaChange = (personaTerm: string) => {
+    if (disabled) return;
+    setSelectedPersonas(prev =>
+      prev.includes(personaTerm) ? prev.filter(p => p !== personaTerm) : [...prev, personaTerm]
+    );
+  };
+
+  const handleConfirm = () => {
+    onConfirm(selectedPersonas);
+  };
 
   return (
-    <div className="space-y-2">
-      <div className="text-sm text-gray-300 mb-2">
-        Select a persona to define the AI's perspective and expertise:
-      </div>
-      <div className="grid grid-cols-1 gap-2">
-        {HARDCODED_PERSONAS.map((persona) => (
-          <Button
-            key={persona.term}
-            variant={selectedPersona === persona.term ? "default" : "outline"}
-            className="justify-start h-auto p-3 text-left"
-            onClick={() => setSelectedPersona(persona.term)}
-          >
-            <div>
-              <div className="font-medium">{persona.term}</div>
-              <div className="text-xs text-gray-400">{persona.description}</div>
-            </div>
-          </Button>
+    <div className="persona-selector-section">
+      <h3>Step 2: Select Personas (Optional)</h3>
+      <p>
+        Choose which AI personas you'd like to use for prompt generation. If none are selected, the agent will use all available personas for maximum diversity.
+      </p>
+      <div className="persona-grid">
+        {appData.personas?.map(persona => (
+          <label key={persona.id} className="persona-checkbox">
+            <input
+              type="checkbox"
+              checked={selectedPersonas.includes(persona.term)}
+              onChange={() => handlePersonaChange(persona.term)}
+              disabled={disabled}
+            />
+            <span className="persona-label">{persona.term}</span>
+          </label>
         ))}
       </div>
-      {selectedPersona && (
-        <div className="text-xs text-green-400 mt-2">
-          ✓ Selected: {selectedPersona}
-        </div>
-      )}
+      <button
+        onClick={handleConfirm}
+        disabled={disabled}
+      >
+        Next: Describe Your Goal
+      </button>
     </div>
   );
 }
