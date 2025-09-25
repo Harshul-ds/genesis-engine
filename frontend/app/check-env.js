@@ -1,11 +1,10 @@
 // check-env.js
-// A standalone script to verify all external API connections.
+// A standalone script to verify all essential external API connections.
 
 require('dotenv').config({ path: '.env.local' });
 const { createClient } = require('@supabase/supabase-js');
-const OpenAI = require('openai');
+const { HfInference } = require('@huggingface/inference');
 
-// A list of checks to run
 const checks = [
     {
         name: "Supabase Connection",
@@ -22,17 +21,37 @@ const checks = [
         }
     },
     {
-        name: "Groq API Connection",
+        name: "Fireworks AI Inference Check",
         check: async () => {
-            const key = process.env.GROQ_API_KEY;
-            if (!key) throw new Error("Groq API Key is missing.");
+            const fireworksKey = process.env.FIREWORKS_API_KEY;
+            if (!fireworksKey) throw new Error("FIREWORKS_API_KEY is missing from .env.local");
 
-            const groq = new OpenAI({ apiKey: key, baseURL: 'https://api.groq.com/openai/v1' });
-            await groq.models.list();
-            return "Connection successful. Able to list models.";
+            // We will make a direct fetch call to the Fireworks API endpoint.
+            // This is the most reliable way to check the key and service status.
+            const FIREWORKS_API_URL = "https://api.fireworks.ai/inference/v1/chat/completions";
+            const testModel = "accounts/fireworks/models/llama-v3p1-8b-instruct";
+
+            const response = await fetch(FIREWORKS_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${fireworksKey}` ,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: testModel,
+                    messages: [{ role: 'user', content: 'Health check' }],
+                    max_tokens: 5,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API request failed: ${response.status} - ${errorText}` );
+            }
+
+            return "Connection successful. API is available and key is valid.";
         }
     },
-    // Add a check for Pinecone here if/when you build the ingestion script
 ];
 
 async function runAllChecks() {
@@ -52,10 +71,10 @@ async function runAllChecks() {
     console.log("-------------------------------------------");
     if (allPassed) {
         console.log("🎉 All systems are go! Your environment is configured correctly.");
-        process.exit(0); // Exit with success code
+        process.exit(0);
     } else {
         console.error("🔥 One or more checks failed. Please fix the errors above before starting the server.");
-        process.exit(1); // Exit with failure code
+        process.exit(1);
     }
 }
 
