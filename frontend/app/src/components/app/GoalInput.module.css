@@ -1,0 +1,75 @@
+/* Styles for Step 3: Goal Input */
+.container {
+  width: 100%;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.suggestionsContainer {
+  margin-bottom: 1.5rem;
+}
+
+.suggestionsTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.75rem;
+}
+
+.suggestionsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.suggestionChip {
+  padding: 8px 14px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.suggestionChip:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: #a78bfa;
+}
+
+.textarea {
+  width: 100%;
+  padding: 14px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #ffffff;
+  border: 1px solid transparent;
+  resize: vertical;
+  min-height: 120px;
+  font-size: 1rem;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.5);
+}
+
+.submitButton {
+  margin-top: 1rem;
+  width: 100%;
+  background-color: #8b5cf6;
+  color: #ffffff;
+}

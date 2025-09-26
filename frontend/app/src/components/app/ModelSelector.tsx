@@ -1,21 +1,42 @@
 // src/components/app/ModelSelector.tsx
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import styles from './ModelSelector.module.css';
+
+interface Model {
+  id: string;
+  name: string;
+  category: string;
+  // Add a property for credit usage to your model data
+  credits: number;
+}
 
 interface ModelSelectorProps {
   onConfirm: (model: string) => void;
   disabled?: boolean;
 }
 
+// Mock credit data for demonstration. You should fetch this from your API.
+const modelCredits: { [key: string]: number } = {
+  'accounts/fireworks/models/llama-v3-70b-instruct': 2.5,
+  'accounts/fireworks/models/llama-v3-8b-instruct': 0.8,
+  'accounts/fireworks/models/mixtral-8x7b-instruct': 1.2,
+};
+
 export function ModelSelector({ onConfirm, disabled = false }: ModelSelectorProps) {
   const [selectedModel, setSelectedModel] = useState('');
 
-  const { data: models, isLoading, isError } = useQuery({
+  const { data: models, isLoading, isError } = useQuery<Model[]>({
     queryKey: ['availableFireworksModels'],
     queryFn: async () => {
       const response = await fetch('/api/list-models');
       if (!response.ok) throw new Error('Network response was not ok');
-      return response.json();
+      const modelsData = await response.json();
+      // Attach credit information to each model
+      return modelsData.map((model: any) => ({
+        ...model,
+        credits: modelCredits[model.id] || 0, // Fallback to 0 if not found
+      }));
     }
   });
 
@@ -31,48 +52,56 @@ export function ModelSelector({ onConfirm, disabled = false }: ModelSelectorProp
   };
 
   if (isLoading) return (
-    <div className="model-loading">
-      <div className="spinner"></div>
-      <p>Fetching model catalog from Fireworks AI...</p>
+    <div className={styles.container}>
+      <div className="model-loading">
+        <div className="spinner"></div>
+        <p>Fetching model catalog from Fireworks AI...</p>
+      </div>
     </div>
   );
+  
   if (isError) return (
-    <div className="model-error">
-      <p>❌ Error: Could not fetch models. Please check your connection.</p>
+    <div className={styles.container}>
+      <div className="model-error">
+        <p>❌ Error: Could not fetch models. Please check your connection.</p>
+      </div>
     </div>
   );
-
-  // Group models by the category we created in our API
-  const groupedModels = models?.reduce((acc, model) => {
-    (acc[model.category] = acc[model.category] || []).push(model);
-    return acc;
-  }, {}) || {};
 
   return (
-    <div className="model-selector-section">
-      <h3>Step 4: Select an AI Model</h3>
-      <p>
-        Choose the AI model that will power your prompt generation. Different models have different strengths and capabilities.
+    <div className={styles.container}>
+      <h3 className={styles.title}>Step 4: Select an AI Model</h3>
+      <p className={styles.subtitle}>
+        Choose the AI model to power your prompt generation.
       </p>
-      <select
-        value={selectedModel}
-        onChange={(e) => handleModelChange(e.target.value)}
-        disabled={disabled}
-      >
-        <option value="" disabled>-- Please choose a model --</option>
-        {Object.entries(groupedModels).map(([category, modelsInCategory]) => (
-          <optgroup key={category} label={`--- ${category} ---`}>
-            {(modelsInCategory as any[]).map(model => (
-              <option key={model.id} value={model.id}>{model.name}</option>
-            ))}
-          </optgroup>
+
+      <div className={styles.modelOptionsContainer}>
+        {models?.map((model) => (
+          <div
+            key={model.id}
+            onClick={() => !disabled && handleModelChange(model.id)}
+            className={`${styles.modelOption} ${
+              selectedModel === model.id ? styles.modelOptionSelected : ''
+            }`}
+          >
+            <div className={styles.modelHeader}>
+              <span className={styles.modelName}>{model.name}</span>
+              <span className={styles.modelCredits}>
+                {model.credits} credits
+              </span>
+            </div>
+            <p className={styles.modelDescription}>Category: {model.category}</p>
+          </div>
         ))}
-      </select>
+      </div>
+
       <button
         onClick={handleConfirm}
         disabled={!selectedModel || disabled}
+        className={styles.generateButton}
       >
-        🚀 Generate Prompts
+        <span role="img" aria-label="rocket">🚀</span>
+        Generate Prompts
       </button>
     </div>
   );

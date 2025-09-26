@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from 'react';
+import styles from './TopicInput.module.css';
 
 interface TopicInputProps {
   onSubmit: (topic: string) => void;
@@ -18,22 +19,24 @@ export function TopicInput({ onSubmit, disabled = false }: TopicInputProps) {
   };
 
   return (
-    <div className="topic-input-section">
-      <h3>Step 1: Choose Your Topic</h3>
-      <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+    <div className={styles.container}>
+      <h3 className={styles.title}>Step 1: Choose Your Topic</h3>
+      <p className={styles.subtitle}>
         What would you like to create prompts about?
       </p>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className={styles.form}>
         <input
           type="text"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           placeholder="Enter a topic (e.g., sustainable fashion startup)"
           disabled={disabled}
+          className={styles.input}
         />
         <button
           type="submit"
           disabled={disabled || !topic.trim()}
+          className={styles.submitButton}
         >
           Next: Select Personas
         </button>

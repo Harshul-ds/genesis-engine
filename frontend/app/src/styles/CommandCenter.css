@@ -1,6 +1,6 @@
 /* src/styles/CommandCenter.css */
 
-/* --- Global Layout --- */
+/* --- Modern Global Layout --- */
 .command-center {
   display: grid;
   grid-template-columns: 350px 1fr 1fr;
@@ -11,6 +11,7 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   position: relative;
+  overflow: hidden;
 }
 
 .command-center::before {
@@ -505,39 +506,99 @@
   transform: translateY(-2px);
 }
 
-/* --- Topic Input Section --- */
+/* --- Modern Topic Input Section --- */
 .topic-input-section h3 {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: rgba(255, 255, 255, 0.95);
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-align: center;
 }
 
 .topic-input-section p {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
-  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  text-align: center;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .topic-input-section form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.topic-input-section input[type="text"] {
+  width: 100%;
+  padding: 20px 24px;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #333;
+  font-size: 1.1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(20px);
+  min-height: 60px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .topic-input-section input[type="text"]:focus {
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.15), 0 12px 40px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.topic-input-section input[type="text"]::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+}
+
+.topic-input-section button {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  font-size: 1.1rem;
+  padding: 18px 32px;
+  width: 100%;
+  border-radius: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.topic-input-section button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s;
+}
+
+.topic-input-section button:hover::before {
+  left: 100%;
 }
 
 .topic-input-section button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
   border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 }
 
 /* --- Goal Description Section --- */
@@ -741,39 +802,44 @@
 }
 
 .step-content h2 {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: #ffffff;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
   text-align: center;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  letter-spacing: -0.02em;
 }
 
 .step-content label {
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   display: block;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 500;
+  text-align: center;
+  line-height: 1.6;
 }
 
 .step-content input, .step-content select, .step-content textarea {
   width: 100%;
-  padding: 16px 20px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 20px 24px;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.1);
   color: #333;
-  font-size: 1rem;
+  font-size: 1.1rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
+  min-height: 60px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .step-content input:focus, .step-content select:focus, .step-content textarea:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.5);
   background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.15), 0 12px 40px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
 }
 
@@ -783,29 +849,49 @@
 
 .step-content button {
   width: 100%;
-  padding: 16px 24px;
-  border-radius: 12px;
-  border: none;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 18px 32px;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
   color: white;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   margin-top: 1.5rem;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+
+.step-content button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s;
+}
+
+.step-content button:hover::before {
+  left: 100%;
 }
 
 .step-content button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 }
 
 .step-content button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 /* --- Loading States --- */
@@ -921,6 +1007,63 @@
   .persona-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* --- Command Center Container --- */
+.command-center-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.command-center-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.genesis-card {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 3rem;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+  width: 100%;
+  min-height: 500px;
+}
+
+.genesis-card h1 {
+  font-size: 2.5rem;
+  margin: 0 0 2rem 0;
+  color: #2c3e50;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-align: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* --- Enhanced Focus States --- */
@@ -1165,6 +1308,15 @@ button.loading::after {
     gap: 1.5rem;
     padding: 1.5rem;
   }
+  
+  .command-center-container {
+    padding: 1.5rem;
+  }
+  
+  .genesis-card {
+    padding: 2.5rem;
+    max-width: 550px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1183,5 +1335,30 @@ button.loading::after {
 
   .control-deck h1 {
     font-size: 2.2rem;
+  }
+  
+  .command-center-container {
+    padding: 1rem;
+  }
+  
+  .genesis-card {
+    padding: 2rem;
+    max-width: 100%;
+    margin: 0 1rem;
+  }
+  
+  .genesis-card h1 {
+    font-size: 2rem;
+  }
+  
+  .topic-input-section input[type="text"] {
+    padding: 16px 20px;
+    font-size: 1rem;
+    min-height: 50px;
+  }
+  
+  .topic-input-section button {
+    padding: 16px 24px;
+    font-size: 1rem;
   }
 }

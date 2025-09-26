@@ -109,7 +109,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         console.log('✅ Database seeded successfully via API!');
-        console.log(`📊 Inserted ${personasData?.length || 0} personas and ${tasksData?.length || 0} tasks`);
+        console.log(`📊 Inserted ${(personasData?.length || 0)} personas and ${(tasksData?.length || 0)} tasks`);
 
         res.status(200).json({
             success: true,
