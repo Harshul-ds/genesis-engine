@@ -77,33 +77,8 @@ const checks = [
 
             return "✅ Google AI API key configured (optional)";
         }
-    },
-    {
-        name: "Database Connection Test",
-        required: true,
-        check: async () => {
-            const { createClient } = require('@supabase/supabase-js');
-            const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-            const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-            if (!url || !key) throw new Error("Supabase credentials missing");
-
-            const supabase = createClient(url, key);
-
-            try {
-                const { count, error } = await supabase.from('prompt_components').select('*', { count: 'exact', head: true });
-
-                if (error) throw new Error(error.message);
-
-                return `✅ Database connected successfully. Found ${count} prompt components.`;
-            } catch (error) {
-                if (error.message.includes('relation "prompt_components" does not exist')) {
-                    return "⚠️  Database connected but tables not found. Run database seeding first.";
-                }
-                throw error;
-            }
-        }
     }
+    // Removed database connection test for production deployment
 ];
 
 async function runAllChecks() {
