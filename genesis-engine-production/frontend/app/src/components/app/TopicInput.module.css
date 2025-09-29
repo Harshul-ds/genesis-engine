@@ -1,0 +1,66 @@
+/* Styles for Step 1: Topic Input */
+.container {
+  width: 100%;
+  text-align: left;
+}
+
+.title {
+  font-size: 1.75rem; /* ~28px */
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem; /* ~14px */
+  margin-bottom: 1.5rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.input {
+  width: 100%;
+  padding: 14px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #ffffff;
+  border: 1px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-size: 1rem;
+}
+
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.input:focus {
+  outline: none;
+  border-color: #a78bfa; /* A light purple */
+  box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.5);
+}
+
+.submitButton {
+  background-color: #8b5cf6; /* A vibrant purple */
+  color: #ffffff;
+  font-weight: 600;
+  padding: 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submitButton:hover {
+  background-color: #7c3aed;
+}
+
+.submitButton:disabled {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: not-allowed;
+}

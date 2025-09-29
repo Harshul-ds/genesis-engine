@@ -1,0 +1,277 @@
+/* src/styles/Genesis.css */
+.command-center-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.genesis-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 40px;
+  width: 600px;
+  max-width: 90vw;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 8px 32px rgba(31, 38, 135, 0.15);
+  color: #333;
+  position: relative;
+  overflow: hidden;
+}
+
+.genesis-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+}
+
+.stepper {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 2rem;
+}
+
+.step-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.step-dot.active {
+  background: #ffffff;
+  transform: scale(1.2);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+}
+
+.step-dot.completed {
+  background: #28a745;
+  box-shadow: 0 0 15px rgba(40, 167, 69, 0.4);
+}
+
+.genesis-card h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.genesis-card h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.input-label {
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 1rem;
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.topic-input, .goal-textarea {
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #333;
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.topic-input:focus, .goal-textarea:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.topic-input::placeholder, .goal-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.persona-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.persona-item {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.persona-item:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.persona-item label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.persona-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #667eea;
+}
+
+.goal-suggestions {
+  margin-bottom: 1.5rem;
+}
+
+.goal-suggestions h4 {
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.goal-suggestion {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+}
+
+.goal-suggestion:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.next-button {
+  width: 100%;
+  padding: 16px 24px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  margin-top: 1.5rem;
+}
+
+.next-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.next-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.model-selector {
+  margin-bottom: 1.5rem;
+}
+
+.model-selector select {
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.model-selector select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #667eea;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .genesis-card {
+    padding: 30px 20px;
+    width: 95vw;
+    margin: 20px;
+  }
+
+  .persona-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stepper {
+    gap: 8px;
+  }
+
+  .step-dot {
+    width: 10px;
+    height: 10px;
+  }
+}
