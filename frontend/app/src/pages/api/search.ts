@@ -13,6 +13,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Query is required.' });
   }
 
+  // Set request timeout (Vercel has 30s limit for serverless functions)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
+
   const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
 
   try {
@@ -21,7 +25,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
       },
+      timeout: 25000,
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     // Load the HTML into cheerio to parse it
     const $ = cheerio.load(data);
@@ -42,7 +50,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(200).json(results.slice(0, 5));
 
   } catch (error) {
+    clearTimeout(timeoutId);
+
+    if (error.name === 'AbortError' || axios.isCancel(error)) {
+      return res.status(408).json({ error: 'Request timeout - please try again' });
+    }
+
     console.error("DuckDuckGo scraping error:", error);
-    res.status(500).json({ error: 'Failed to fetch search results from DuckDuckGo.' });
+    res.status(500).json({
+      error: 'Failed to fetch search results from DuckDuckGo.',
+      details: error.message
+    });
   }
 }

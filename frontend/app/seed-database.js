@@ -112,7 +112,7 @@ async function seedDatabase() {
     }
 
     console.log('✅ Database seeded successfully!');
-    console.log(`📊 Inserted ${personasData.length} personas and ${tasksData.length} tasks`);
+    console.log('📊 Inserted ' + (personasData?.length || 0) + ' personas and ' + (tasksData?.length || 0) + ' tasks');
 
     // Verify the data
     console.log('🔍 Verifying data...');

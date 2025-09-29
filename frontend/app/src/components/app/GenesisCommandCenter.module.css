@@ -86,29 +86,27 @@
   font-size: 1.75rem;
   font-weight: 700;
   color: #ffffff;
-  margin-bottom: 0.5rem;
-}
-
 .topicSubtitle {
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
 }
 
+/* Topic Form */
 .topicForm {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin-top: 1.5rem;
 }
 
 .topicInput {
   width: 100%;
   padding: 20px 24px;
-  background-color: rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  color: #ffffff;
   border: 2px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   font-size: 1.1rem;
   min-height: 60px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -331,19 +329,6 @@
 }
 
 .goalSubtitle {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
-}
-
-.goalSuggestions {
-  margin-bottom: 1.5rem;
-}
-
-.goalSuggestionsTitle {
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -394,6 +379,69 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* Topic Suggestions */
+.topicSuggestions {
+  margin-bottom: 2rem;
+}
+
+.topicSuggestionsTitle {
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.topicSuggestionsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.topicSuggestion {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.topicSuggestion:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.refreshButton {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.refreshButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Step 4: Model Selection */
 .modelContainer {
   width: 100%;
@@ -401,20 +449,6 @@
 
 .modelTitle {
   font-size: 1.75rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 0.5rem;
-}
-
-.modelSubtitle {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
-}
-
-.modelSelector {
-  width: 100%;
-  padding: 20px 24px;
   border-radius: 16px;
   border: 2px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.1);
@@ -488,6 +522,10 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .personaGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .topicSuggestionsGrid {
     grid-template-columns: 1fr;
   }
   

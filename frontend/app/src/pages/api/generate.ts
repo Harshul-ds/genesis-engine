@@ -25,6 +25,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
+  // Set request timeout (Vercel has 30s limit for serverless functions)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
+
   try {
     console.log(`[generate.ts] Making a DIRECT streaming call to Fireworks AI for model '${model}'...`);
 
@@ -32,6 +36,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.flushHeaders();
 
     const response = await fetch(FIREWORKS_API_URL, {
@@ -48,11 +54,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         max_tokens: 2048,
         temperature: 0.7,
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       console.error(`Fireworks API error: ${response.status} - ${response.statusText}`);
-      writeEvent(res, 'error', { message: `Fireworks API error: ${response.statusText}` });
+      writeEvent(res, 'error', {
+        message: `Fireworks API error: ${response.statusText}`,
+        status: response.status
+      });
       res.end();
       return;
     }
@@ -77,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         break;
       }
 
-      const chunk = decoder.decode(value);
+      const chunk = decoder.decode(value, { stream: true });
       buffer += chunk;
 
       // Process complete lines from buffer
@@ -98,14 +110,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
           } catch (e) {
             // Skip malformed JSON lines
+            console.warn('Skipping malformed JSON line:', line);
             continue;
           }
         }
       }
     }
   } catch (error) {
+    clearTimeout(timeoutId);
     console.error('Error in generate API:', error);
-    writeEvent(res, 'error', { message: error.message });
+
+    if (error.name === 'AbortError') {
+      writeEvent(res, 'error', { message: 'Request timeout - please try again' });
+    } else {
+      writeEvent(res, 'error', {
+        message: error.message || 'Unknown error occurred',
+        type: error.name
+      });
+    }
     res.end();
   }
 }

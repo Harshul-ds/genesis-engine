@@ -76,7 +76,7 @@ export const ControlPanel = () => {
               disabled={isThinking}
             />
           )}
-          {stage === 'awaiting_goal_description' && <GoalInput onSubmit={handleGoal} disabled={isThinking} />}
+          {stage === 'awaiting_goal_description' && <GoalInput onSubmit={handleGoal} disabled={isThinking} topic={topic} />}
           {stage === 'awaiting_model' && (
             <ModelSelector
               onConfirm={handleModel}
