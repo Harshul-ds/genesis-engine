@@ -27,8 +27,28 @@ export interface FinalPromptCard {
   personaTerm: string;
   prompt: string;
   output?: string; // The output will be populated when the user clicks "Execute"
-  isGeneratingPrompt: boolean; // Whether the initial prompt is being generated
-  isGeneratingOutput: boolean; // Whether the output is being generated
+  isLoadingOutput?: boolean;
+}
+
+// Helper function to generate a prompt for a single persona
+async function generateSinglePrompt(
+  topic: string,
+  goal: string,
+  persona: string,
+  model: string,
+): Promise<string> {
+  const response = await fetch('/api/generate-single-prompt', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ topic, goal, persona, model }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to generate prompt');
+  }
+
+  const data = await response.text();
+  return data;
 }
 
 // ==============================================================================
@@ -68,8 +88,9 @@ interface AgentState {
   liveHistory: AgentStreamEvent[];
 
   // ✨ SIMPLIFIED STATE: We only need one 'thoughts' variable now.
-  agentThoughts: string, 
+  agentThoughts: string,
   generationResult: string,
+  
   // START ADDITION 1: New state variables for the autonomous agent
   isAutonomous: boolean;
   autonomousStatus: string;
@@ -96,14 +117,14 @@ interface AgentActions {
   handlePersonasSubmit: () => void;
   handleModelSubmit: () => void;
 
-  // --- NEW ACTIONS for the sophisticated workflow ---
+  // --- MULTI-PROMPT CARD ACTIONS ---
+  generatePromptCards: () => Promise<void>;
+  executePromptCard: (index: number) => Promise<void>;
+  
+  // --- OTHER ACTIONS ---
   generateThoughts: () => Promise<void>;
   setAgentThoughts: (thoughts: string) => void;
   generateFinalPrompt: () => Promise<void>;
-  generateSinglePrompt: (personaTerm: string) => Promise<void>;
-  generatePromptCards: () => Promise<void>;
-  executePromptCard: (index: number) => Promise<void>;
-  executePrompt: (prompt: string, personaTerm: string) => Promise<void>;
 
   reset: () => void;
   // START ADDITION 2: Orchestrator action
@@ -318,7 +339,117 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
   },
 
   /**
+   * STEP 1: GENERATE PROMPT CARDS
+   * This is our new action that replaces the old generateThoughts
+   */
+  generatePromptCards: async () => {
+    const { selectedModel, topic, goal, selectedPersonas } = get();
+
+    // First, set loading state and clear any previous prompts
+    set({ isGenerating: true, agentError: null, finalPrompts: [] });
+
+    try {
+      // Create a promise for each persona's prompt generation
+      const promptPromises = selectedPersonas.map(persona =>
+        generateSinglePrompt(topic, goal, persona, selectedModel)
+      );
+
+      // Wait for all prompts to be generated
+      const prompts = await Promise.all(promptPromises);
+
+      // Create the prompt cards
+      const promptCards = prompts.map((prompt, index) => ({
+        personaTerm: selectedPersonas[index],
+        prompt,
+        output: undefined,
+        isLoadingOutput: false
+      }));
+
+      // Update state with the generated cards
+      set({ finalPrompts: promptCards, isGenerating: false, currentStep: 'results' });
+
+    } catch (error: any) {
+      console.error('Failed to generate prompts:', error);
+      set({ 
+        isGenerating: false,
+        agentError: error.message || 'Failed to generate prompts.',
+        currentStep: 'model'
+      });
+    }
+  },
+
+  /**
+   * Executes a prompt card and updates its output
+   */
+  executePromptCard: async (index: number) => {
+    const { finalPrompts, selectedModel } = get();
+    const card = finalPrompts[index];
+    if (!card || card.isLoadingOutput) return;
+
+    // Update loading state for this card
+    set({
+      finalPrompts: finalPrompts.map((c, i) => 
+        i === index ? { ...c, isLoadingOutput: true } : c
+      )
+    });
+
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: selectedModel,
+          history: [{ role: 'user', content: card.prompt }],
+        }),
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error('Failed to generate output');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let output = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const decodedChunk = decoder.decode(value);
+        const cleanText = parseAIStreamChunk(decodedChunk);
+        output += cleanText;
+
+        // Update the card's output as it streams in
+        set({
+          finalPrompts: finalPrompts.map((c, i) =>
+            i === index ? { ...c, output } : c
+          )
+        });
+      }
+
+      // Update the final state of the card
+      set({
+        finalPrompts: finalPrompts.map((c, i) =>
+          i === index ? { ...c, output, isLoadingOutput: false } : c
+        )
+      });
+
+    } catch (error: any) {
+      console.error('Failed to execute prompt:', error);
+      
+      // Update the card to show the error
+      set({
+        finalPrompts: finalPrompts.map((c, i) =>
+          i === index ? { ...c, output: 'Error: ' + error.message, isLoadingOutput: false } : c
+        ),
+        agentError: error.message || 'Failed to execute prompt'
+      });
+    }
+  },
+
+  /**
    * STEP 1: GENERATE INITIAL THOUGHTS
+   * This remains for backward compatibility
    */
   generateThoughts: async () => {
     const { selectedModel, topic, goal, selectedPersonas } = get();
@@ -358,7 +489,6 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
-      // ✨ KEY CHANGE: The UI state is updated INSIDE the loop ✨
       while (true) {
         const { done, value } = await reader.read();
         if (done) break; // Exit the loop when the stream is finished
@@ -369,7 +499,6 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
         // This updates the state with every new piece of text, triggering a live UI update.
         set((state) => ({ agentThoughts: state.agentThoughts + cleanText }));
       }
-      // No need to do anything after the loop finishes. The UI is already up to date.
 
     } catch (error: any) {
       set({ agentError: error.message, currentStep: 'model' });
@@ -380,8 +509,10 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
    * ✨ RENAMED ACTION: This is now clearer.
    */
   setAgentThoughts: (thoughts: string) => set({ agentThoughts: thoughts }),
+  
   /**
    * STEP 2: GENERATE THE FINAL PROMPT USING THE REFINED THOUGHTS
+   * This also remains for backward compatibility
    */
   generateFinalPrompt: async () => {
     const { selectedModel, topic, goal, selectedPersonas, agentThoughts } = get();
@@ -389,7 +520,6 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
     set({ currentStep: 'generating', agentError: null, generationResult: '' });
 
     try {
-      // This prompt uses the (potentially edited) thoughts to create the final prompt.
       const finalPromptInstruction = `
         Using the following thought process as your guide:
         ---THOUGHTS---
@@ -439,21 +569,26 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
   },
 
   /**
-   * Finalizes the model selection and moves to results step.
-   * Now creates prompt cards for parallel generation.
+   * Your `handleModelSubmit`  action should now call the first step of this new process.
    */
   handleModelSubmit: async () => {
-    // Preserve manual behavior: when not autonomous, just kick off the prompt card generation
+    // Preserve manual behavior: when not autonomous, just kick off the first step
     if (!get().isAutonomous) {
-      // Existing behavior changed to use prompt cards
+      // Now we use our new multi-card generation
       get().generatePromptCards();
       return;
     }
 
     // When running in autonomous mode, run the full flow and clean up state.
     try {
-      // Generate prompt cards (this will stream and set results)
+      // Generate all prompt cards
       await get().generatePromptCards();
+
+      // Execute all prompts in sequence
+      const { finalPrompts } = get();
+      for (let i = 0; i < finalPrompts.length; i++) {
+        await get().executePromptCard(i);
+      }
 
       // Finalize autonomous run
       set({ currentStep: 'results', isAutonomous: false, autonomousStatus: 'Workflow Complete!' });
@@ -505,7 +640,7 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
         throw new Error("No personas were suggested by the AI.");
       }
       
-            // When running autonomously, select ALL suggested personas for a richer synthesis
+      // When running autonomously, select ALL suggested personas for a richer synthesis
       const suggestedPersonas = get().suggestedPersonas;
       if (suggestedPersonas.length === 0) {
         throw new Error("No personas were suggested by the AI.");
@@ -537,257 +672,6 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
     }
   },
   // END ADDITION 2
-
-  /**
-   * Generates a prompt for a single persona, handling streaming updates.
-   */
-  generateSinglePrompt: async (personaTerm: string) => {
-    const { topic, goal, selectedModel } = get();
-
-    try {
-      const finalPromptInstruction = `
-        As the **${personaTerm}**, generate a high-quality, dense prompt of **no more than 300 words** to achieve the following:
-        - Topic: "${topic}"
-        - Goal: "${goal}"
-
-        Structure the prompt with "HAT BRIEFS" for different expertises and a "MERGE OUTPUT" section for the final structure.
-      `;
-
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: selectedModel,
-          history: [{ role: 'user', content: finalPromptInstruction }],
-        }),
-      });
-
-      if (!response.ok || !response.body) {
-        throw new Error(`API error for ${personaTerm}`);
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let isFirstChunk = true;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const cleanText = parseAIStreamChunk(decoder.decode(value));
-
-        set(state => ({
-          finalPrompts: state.finalPrompts.map(p => {
-            if (p.personaTerm === personaTerm) {
-              // For the first chunk, replace the placeholder text.
-              // For subsequent chunks, append.
-              const newPrompt = isFirstChunk ? cleanText : p.prompt + cleanText;
-              isFirstChunk = false; // Unset the flag after the first chunk
-              return { ...p, prompt: newPrompt };
-            }
-            return p;
-          })
-        }));
-      }
-
-      // After the stream is complete, set the loading state to false for this card.
-      set(state => ({
-        finalPrompts: state.finalPrompts.map(p =>
-          p.personaTerm === personaTerm ? { ...p, isGeneratingPrompt: false } : p
-        ),
-      }));
-
-    } catch (error: any) {
-      // If an error occurs, update the specific card to show the error.
-      set(state => ({
-        finalPrompts: state.finalPrompts.map(p =>
-          p.personaTerm === personaTerm ? { ...p, prompt: `Error: ${error.message}`, isGeneratingPrompt: false } : p
-        ),
-      }));
-    }
-  },
-
-  /**
-   * STEP 1: GENERATE PROMPT CARDS
-   * This is our new action that replaces the old generateThoughts
-   */
-  generatePromptCards: async () => {
-    const { selectedPersonas } = get();
-
-    // First, set loading state and clear any previous prompts
-    set({ isGenerating: true, agentError: null });
-
-    try {
-      // Initialize the prompt cards with loading states
-      const initialCards = selectedPersonas.map(persona => ({
-        personaTerm: persona,
-        prompt: "Generating prompt for " + persona + "...",
-        output: undefined,
-        isGeneratingPrompt: true,
-        isGeneratingOutput: false
-      }));
-
-      // Set initial cards
-      set({ finalPrompts: initialCards });
-
-      // Generate prompts for each persona
-      const promptPromises = selectedPersonas.map(persona =>
-        get().generateSinglePrompt(persona)
-      );
-
-      // Wait for all prompts to finish generating
-      await Promise.all(promptPromises);
-
-      // Done with generation, move to results
-      set({ isGenerating: false, currentStep: 'results' });
-
-    } catch (error: any) {
-      console.error('Failed to generate prompts:', error);
-      set({
-        isGenerating: false,
-        agentError: error.message || 'Failed to generate prompts.',
-        currentStep: 'model'
-      });
-    }
-  },
-
-  /**
-   * Executes a prompt card and updates its output
-   */
-  executePromptCard: async (index: number) => {
-    const { finalPrompts, selectedModel } = get();
-    const card = finalPrompts[index];
-    if (!card || card.isGeneratingOutput) return;
-
-    // Update loading state for this card
-    set({
-      finalPrompts: finalPrompts.map((c, i) => 
-        i === index ? { ...c, isGeneratingOutput: true } : c
-      )
-    });
-
-    try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: selectedModel,
-          history: [{ role: 'user', content: card.prompt }],
-        }),
-      });
-
-      if (!response.ok || !response.body) {
-        throw new Error('Failed to generate output');
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let output = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const decodedChunk = decoder.decode(value);
-        const cleanText = parseAIStreamChunk(decodedChunk);
-        output += cleanText;
-
-        // Update the card's output as it streams in
-        set({
-          finalPrompts: finalPrompts.map((c, i) =>
-            i === index ? { ...c, output } : c
-          )
-        });
-      }
-
-      // Update the final state of the card
-      set({
-        finalPrompts: finalPrompts.map((c, i) =>
-          i === index ? { ...c, output, isGeneratingOutput: false } : c
-        )
-      });
-
-    } catch (error: any) {
-      console.error('Failed to execute prompt:', error);
-      
-      // Update the card to show the error
-      set({
-        finalPrompts: finalPrompts.map((c, i) =>
-          i === index ? { ...c, output: 'Error: ' + error.message, isGeneratingOutput: false } : c
-        ),
-        agentError: error.message || 'Failed to execute prompt'
-      });
-    }
-  },
-
-  /**
-   * Executes a prompt for a specific persona
-   */
-  executePrompt: async (prompt: string, personaTerm: string) => {
-    const { finalPrompts, selectedModel } = get();
-    const index = finalPrompts.findIndex(card => card.personaTerm === personaTerm);
-    if (index === -1 || finalPrompts[index].isGeneratingOutput) return;
-
-    // Update loading state for this card
-    set({
-      finalPrompts: finalPrompts.map((c, i) => 
-        i === index ? { ...c, isGeneratingOutput: true } : c
-      )
-    });
-
-    try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: selectedModel,
-          history: [{ role: 'user', content: prompt }],
-        }),
-      });
-
-      if (!response.ok || !response.body) {
-        throw new Error('Failed to generate output');
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let output = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const decodedChunk = decoder.decode(value);
-        const cleanText = parseAIStreamChunk(decodedChunk);
-        output += cleanText;
-
-        // Update the card's output as it streams in
-        set({
-          finalPrompts: finalPrompts.map((c, i) =>
-            i === index ? { ...c, output } : c
-          )
-        });
-      }
-
-      // Update the final state of the card
-      set({
-        finalPrompts: finalPrompts.map((c, i) =>
-          i === index ? { ...c, output, isGeneratingOutput: false } : c
-        )
-      });
-
-    } catch (error: any) {
-      console.error('Failed to execute prompt:', error);
-      
-      // Update the card to show the error
-      set({
-        finalPrompts: finalPrompts.map((c, i) =>
-          i === index ? { ...c, output: 'Error: ' + error.message, isGeneratingOutput: false } : c
-        ),
-        agentError: error.message || 'Failed to execute prompt'
-      });
-    }
-  },
 
   /**
    * Resets the entire wizard to its initial state for a new session.

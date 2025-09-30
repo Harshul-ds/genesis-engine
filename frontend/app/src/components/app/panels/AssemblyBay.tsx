@@ -10,7 +10,7 @@ export const AssemblyBay: React.FC<{ assemblyState: AssemblyState }> = ({ assemb
 
       <div className="thought-stream">
         <div>
-          <h3>Agent's Thought Process:</h3>
+          <h3>Agent&apos;s Thought Process:</h3>
           <div className="thought-content">
             {assemblyState.currentThought || "Awaiting instructions..."}
             {assemblyState.currentThought && (

@@ -38,7 +38,7 @@ export function PersonaSelector({ appData, onConfirm, disabled = false }: Person
     <div className={styles.container}>
       <h3 className={styles.title}>Step 2: Select Personas (Optional)</h3>
       <p className={styles.subtitle}>
-        Choose which AI personas you'd like to use for prompt generation.
+        Choose which AI personas you&apos;d like to use for prompt generation.
       </p>
 
       <div className={styles.toggleLabel}>

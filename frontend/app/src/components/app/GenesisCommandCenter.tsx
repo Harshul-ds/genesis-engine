@@ -17,6 +17,8 @@ import { ModelStep } from './wizard-steps/ModelStep';
 // --- NEW IMPORTS FOR PHASE 5 ---
 import { GeneratingStep } from './wizard-steps/GeneratingStep';
 import { ResultsStep } from './wizard-steps/ResultsStep';
+// --- NEW IMPORT FOR PHASE 6 ---
+import { RefinementStep } from './wizard-steps/RefinementStep';
 
 interface GenesisCommandCenterProps {
   appData: AppData;
@@ -37,11 +39,13 @@ const ErrorView = ({ error }: { error: string }) => (
 
 export const GenesisCommandCenter: React.FC<GenesisCommandCenterProps> = ({ appData }) => {
   // Get the state and actions needed for the main container
-  const { currentStep, initializeApp, isAppLoading, agentError } = useAgentStore(state => ({
+  const { currentStep, initializeApp, isAppLoading, agentError, isAutonomous, autonomousStatus } = useAgentStore(state => ({
     currentStep: state.currentStep,
     initializeApp: state.initializeApp,
     isAppLoading: state.isAppLoading,
     agentError: state.agentError,
+    isAutonomous: state.isAutonomous,
+    autonomousStatus: state.autonomousStatus,
   }));
 
   // Initialize the app on component mount. This runs only once.
@@ -82,6 +86,8 @@ export const GenesisCommandCenter: React.FC<GenesisCommandCenterProps> = ({ appD
       // --- FINAL IMPLEMENTATION FOR PHASE 5 ---
       case 'generating':
         return <GeneratingStep />;
+      case 'refinement': // ✨ ADD THIS NEW CASE
+        return <RefinementStep />;
       case 'results':
         return <ResultsStep />;
       default:
@@ -92,6 +98,15 @@ export const GenesisCommandCenter: React.FC<GenesisCommandCenterProps> = ({ appD
   return (
     <div className={styles.commandCenterContainer}>
       <div className={styles.genesisCard}>
+        {/* START ADDITION: The Autonomous Status Header */}
+        {isAutonomous && (
+          <div className={styles.autonomousHeader}>
+            <div className={styles.spinner}></div>
+            <span>{autonomousStatus}</span>
+          </div>
+        )}
+        {/* END ADDITION */}
+
         <h1 className={styles.header}>Genesis Command Center</h1>
 
         {!isAppLoading && !agentError && renderStepIndicator()}

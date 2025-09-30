@@ -94,7 +94,7 @@ export interface AppData {
 }
 
 // Defines the possible steps in our new user flow wizard.
-export type Step = 'topic' | 'goals' | 'personas' | 'model' | 'generating' | 'results';
+export type Step = 'topic' | 'goals' | 'personas' | 'model' | 'generating' | 'refinement' | 'results';
 
 // Represents a clean, filtered AI model object from the Fireworks API.
 // This is the "contract" our backend provides to the frontend.

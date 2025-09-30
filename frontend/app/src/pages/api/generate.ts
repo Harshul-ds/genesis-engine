@@ -1,133 +1,87 @@
 // src/pages/api/generate.ts
-import { NextApiRequest, NextApiResponse } from 'next';
+import { fireworks } from '@ai-sdk/fireworks';
+import { streamText, StreamingTextResponse } from 'ai';
+import { NextRequest } from 'next/server';
 
-const FIREWORKS_API_URL = "https://api.fireworks.ai/inference/v1/chat/completions";
-
-// Helper function to write structured events to the stream
-const writeEvent = (res: NextApiResponse, type: string, payload: any) => {
-  res.write(`data: ${JSON.stringify({ type, payload })}\n\n`);
+// Switch to the Edge Runtime for better streaming performance
+export const config = {
+  runtime: 'edge',
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const fireworksApiKey = process.env.FIREWORKS_API_KEY;
+// ✅ Kept: Your utility to ensure model ID is in the correct Fireworks format
+const normalizeModelId = (model: string) => {
+  if (model.startsWith("accounts/")) return model; // already correct
+  return `accounts/fireworks/models/${model}`;
+};
 
-  if (!fireworksApiKey) {
-    writeEvent(res, 'error', { message: 'Fireworks API key not configured.' });
-    res.end();
-    return;
-  }
+const normalizeMessages = (history: any[]) => {
+  if (!Array.isArray(history)) return [];
+  return history
+    .filter((msg) => msg && (msg.role || msg.type) && (msg.content || msg.text))
+    .map((msg) => ({
+      role: (msg.role || msg.type || 'user') as 'user' | 'assistant' | 'system',
+      content: String(msg.content || msg.text || ''),
+    }));
+};
 
-  const { history, model } = req.body;
-
-  if (!model) {
-    writeEvent(res, 'error', { message: 'Model ID is required.' });
-    res.end();
-    return;
-  }
-
-  // Set request timeout (Vercel has 30s limit for serverless functions)
+export default async function handler(req: NextRequest) {
+  // ✅ Kept: Timeout logic using an AbortController
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
 
   try {
-    console.log(`[generate.ts] Making a DIRECT streaming call to Fireworks AI for model '${model}'...`);
+    // Note: In Edge runtime, we get the body from req.json()
+    let { history, model } = await req.json();
 
-    // Set up streaming response headers
-    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.flushHeaders();
+    console.log(`[generate.ts] Raw request body:`, JSON.stringify({ history, model }));
 
-    const response = await fetch(FIREWORKS_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${fireworksApiKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'text/event-stream',
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: history,
-        stream: true,
-        max_tokens: 2048,
-        temperature: 0.7,
-      }),
-      signal: controller.signal,
+    if (!model) {
+      return new Response(JSON.stringify({ error: "Model ID is required." }), { status: 400 });
+    }
+
+    // ✅ Kept: Your normalization logic is used here
+    model = normalizeModelId(model);
+    const messages = normalizeMessages(history);
+    
+    console.log(`[generate.ts] History received:`, history);
+    console.log(`[generate.ts] Normalized messages:`, messages);
+    
+    // Ensure we have at least one message
+    if (messages.length === 0) {
+      console.warn(`[generate.ts] No valid messages found, using fallback`);
+      messages.push({ role: 'user', content: 'Hello' });
+    }
+
+    console.log(`[generate.ts] Streaming Fireworks response from model '${model}'...`);
+
+    // ✨ Changed: Use the AI SDK's streamText for compatibility
+    const result = await streamText({
+      model: fireworks(model),
+      messages: messages, // Use the normalized messages
+      // Pass the abort signal for timeout handling
+      abortSignal: controller.signal,
+      // You can still pass other parameters here if needed
+      maxTokens: 2048,
+      temperature: 0.7,
     });
-
+    
+    // Once the stream starts, we can clear the timeout
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      console.error(`Fireworks API error: ${response.status} - ${response.statusText}`);
-      writeEvent(res, 'error', {
-        message: `Fireworks API error: ${response.statusText}`,
-        status: response.status
-      });
-      res.end();
-      return;
-    }
+    // ✨ Changed: Use StreamingTextResponse to correctly pipe the stream
+    return new StreamingTextResponse(result.toAIStream());
 
-    const reader = response.body?.getReader();
-    const decoder = new TextDecoder();
-
-    if (!reader) {
-      throw new Error('Response body is null');
-    }
-
-    let buffer = '';
-    let fullThought = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-
-      if (done) {
-        // Send final completion event
-        writeEvent(res, 'stream_end', { message: "AI has finished generating its thought." });
-        res.end();
-        break;
-      }
-
-      const chunk = decoder.decode(value, { stream: true });
-      buffer += chunk;
-
-      // Process complete lines from buffer
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || ''; // Keep incomplete line in buffer
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          try {
-            const data = JSON.parse(line.substring(6));
-
-            if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) {
-              const content = data.choices[0].delta.content;
-              fullThought += content;
-
-              // Send structured thought chunk event instead of raw text
-              writeEvent(res, 'thought_chunk', { text: content });
-            }
-          } catch (e) {
-            // Skip malformed JSON lines
-            console.warn('Skipping malformed JSON line:', line);
-            continue;
-          }
-        }
-      }
-    }
-  } catch (error) {
+  } catch (error: any) {
+    // ✅ Kept: Your error handling logic
     clearTimeout(timeoutId);
-    console.error('Error in generate API:', error);
+    console.error("Error in generate API:", error);
 
     if (error.name === 'AbortError') {
-      writeEvent(res, 'error', { message: 'Request timeout - please try again' });
-    } else {
-      writeEvent(res, 'error', {
-        message: error.message || 'Unknown error occurred',
-        type: error.name
-      });
+      return new Response(JSON.stringify({ error: "Request timed out." }), { status: 504 });
     }
-    res.end();
+    
+    return new Response(JSON.stringify({ error: error.message || "An unknown error occurred." }), {
+      status: 500,
+    });
   }
 }

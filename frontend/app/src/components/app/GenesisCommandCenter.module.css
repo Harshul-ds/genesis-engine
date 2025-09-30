@@ -10,11 +10,11 @@
   /* Flexbox layout to manage scrolling */
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 4rem); /* Adjust as needed */
-  max-height: 800px; /* Set a max-height for large screens */
+  height: 100vh; /* Use full viewport height */
+  max-height: 100vh; /* Allow full screen usage */
   width: 100%;
-  max-width: 500px; /* Set a max-width for the component */
-  margin: 2rem auto; /* Center the card */
+  max-width: min(90vw, 800px); /* Responsive width - max 90% of viewport or 800px */
+  margin: 0 auto; /* Center the card */
 }
 
 .header {
@@ -59,10 +59,11 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .genesisCard {
-    height: calc(100vh - 2rem);
-    max-height: none;
-    margin: 1rem;
+    height: 100vh; /* Full height on mobile */
+    max-height: 100vh;
+    margin: 0; /* Remove margins on mobile for full screen */
     padding: 1.5rem;
+    border-radius: 0; /* Remove border radius on mobile for full screen */
   }
   
   .header {
@@ -71,6 +72,13 @@
   
   .stepper {
     margin: 1rem 0;
+  }
+}
+
+/* Large screen optimization */
+@media (min-width: 1200px) {
+  .genesisCard {
+    max-width: min(80vw, 900px); /* Slightly larger on very large screens */
   }
 }
 
@@ -286,6 +294,13 @@
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.personaItem.active {
+  background-color: #4a417a;
+  border-color: #a885ff;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
 .personaItemLabel {
@@ -519,6 +534,20 @@
   cursor: not-allowed;
   transform: none;
   box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
+/* START ADDITION: Styles for the Autonomous Header */
+.autonomousHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  color: #a885ff;
+  border: 1px solid rgba(168, 133, 255, 0.3);
+}
+
 }
 
 /* Responsive Design */
@@ -532,6 +561,7 @@
   }
   
   .topicInput,
+/* END ADDITION */
   .goalTextarea,
   .modelSelector {
     padding: 16px 20px;
@@ -544,4 +574,90 @@
     padding: 16px 24px;
     font-size: 1rem;
   }
+}
+
+/* Results Step Styles */
+.resultsContainer {
+  width: 100%;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.resultsTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.resultsSubtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+.generationResult {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(20px);
+  text-align: left;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.generationContent {
+  color: #ffffff;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.copyButton {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(20px);
+}
+
+.copyButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.noResult {
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  margin-bottom: 2rem;
+}
+
+.resetButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+}
+
+.resetButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
 }
