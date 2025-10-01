@@ -1,0 +1,145 @@
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 60px;
+  background-color: var(--surface);
+  border-right: 1px solid var(--border);
+  transition: width 0.3s ease;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.sidebar.expanded {
+  width: 300px;
+}
+
+.toggleButton {
+  width: 60px;
+  height: 60px;
+  background: transparent;
+  border: none;
+  color: var(--on-surface);
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.toggleButton:hover {
+  background-color: var(--surface-variant);
+}
+
+.content {
+  padding: 1rem;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  flex: 1;
+  padding: 0.75rem;
+  background: transparent;
+  border: none;
+  color: var(--on-surface-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  background-color: var(--surface-variant);
+}
+
+.tab.active {
+  color: var(--primary);
+  background-color: var(--primary-container);
+  border-bottom: 2px solid var(--primary);
+}
+
+.tabContent {
+  flex-grow: 1;
+}
+
+.historySection h4,
+.savedSection h4 {
+  margin: 0 0 1rem 0;
+  color: var(--on-surface);
+  font-size: 1rem;
+}
+
+.historyList,
+.savedList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.historyItem,
+.savedItem {
+  padding: 0.75rem;
+  background: var(--surface-variant);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.timestamp {
+  font-size: 0.75rem;
+  color: var(--on-surface-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.eventText {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--on-surface);
+  line-height: 1.4;
+}
+
+.savedItem h5 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: var(--on-surface);
+}
+
+.savedContent {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--on-surface-secondary);
+  line-height: 1.4;
+}
+
+.empty {
+  text-align: center;
+  color: var(--on-surface-secondary);
+  font-style: italic;
+  margin: 2rem 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 50px;
+  }
+
+  .sidebar.expanded {
+    width: 280px;
+  }
+
+  .toggleButton {
+    width: 50px;
+    height: 50px;
+  }
+}

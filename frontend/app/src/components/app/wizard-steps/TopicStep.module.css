@@ -1,0 +1,101 @@
+/* TopicStep.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.container h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--on-surface-primary);
+  margin: 0 0 0.25rem 0;
+}
+.container p {
+  font-size: 1rem;
+  color: var(--on-surface-secondary);
+  margin: 0 0 1.5rem 0;
+}
+
+.topicInput {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  background-color: var(--input-background);
+  border: 2px solid transparent;
+  color: var(--on-surface-primary);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+.topicInput::placeholder {
+  color: var(--on-surface-tertiary);
+}
+.topicInput:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: var(--surface);
+}
+
+.buttonContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.manualButton, .launchButton {
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid var(--border);
+}
+
+.manualButton {
+  background-color: var(--surface);
+  color: var(--primary);
+}
+.launchButton {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+
+.suggestions p {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--on-surface-secondary);
+  margin: 2rem 0 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.topicGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.topicChip {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  /* ✨ DEFINITIVE FIX FOR VISIBILITY */
+  color: var(--on-surface-secondary); /* Use the darker secondary text color */
+  font-weight: 500; /* Make it slightly bolder */
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  min-height: 80px;
+}
+
+.topicChip:hover {
+  border-color: var(--primary);
+  color: var(--on-surface-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--accent-glow);
+}

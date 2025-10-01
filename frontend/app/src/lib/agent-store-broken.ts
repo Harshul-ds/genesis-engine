@@ -1,7 +1,5 @@
 // src/lib/agent-store.ts
 import { create } from 'zustand';
-import { generateText } from 'ai';
-import { fireworks } from '@ai-sdk/fireworks';
 import { AppData, Step, ApiModel, PromptComponent, GeneratedPrompt, AgentStreamEvent } from './types';
 
 // =========================================================================
@@ -24,6 +22,7 @@ const parseAIStreamChunk = (chunk: string): string => {
     .join(''); // Join the clean text from all lines in the chunk
 };
 
+// ✨ NEW TYPE: To hold a prompt and its potential output
 export interface FinalPromptCard {
   personaTerm: string;
   prompt: string;
@@ -62,12 +61,13 @@ interface AgentState {
 
   // --- AI-GENERATED STATE ---
   suggestedGoals: string[];
-  suggestedPersonas: any[],
+  suggestedPersonas: PromptComponent[];
+
   // --- OUTPUT STATE ---
   finalPrompts: FinalPromptCard[]; // Now using our new card type
 
   // --- NEW FOR PHASE 5 ---
-  liveHistory: AgentStreamEvent[],
+  liveHistory: AgentStreamEvent[];
 
   // ✨ SIMPLIFIED STATE: We only need one 'thoughts' variable now.
   agentThoughts: string, 
@@ -78,16 +78,10 @@ interface AgentState {
   // END ADDITION 1
 
   // ✨ NEW: A log to show the agent's work
-  agentLog: string[],
-
-  // --- NEW FOR THEME SYSTEM ---
-  theme: 'light' | 'dark'; // ✨ NEW: To track the current theme
-
-  // ✨ NEW: Session history and saved prompts for sidebar
-  sessionHistory: AgentStreamEvent[],
-  savedPrompts: GeneratedPrompt[],
-
+  agentLog: [] as string[],
 }
+
+// ==============================================================================
 // 2. ACTIONS DEFINITION
 // All the functions that can change the state. These are the "verbs".
 // ==============================================================================
@@ -99,7 +93,6 @@ interface AgentActions {
   setTopic: (topic: string) => void;
   setGoal: (goal: string) => void;
   setSelectedModel: (modelId: string) => void;
-  setCardExecutionModel: (personaTerm: string, modelId: string) => void;
 
   // --- WIZARD NAVIGATION & LOGIC ---
   handleTopicSubmit: () => Promise<void>;
@@ -109,23 +102,19 @@ interface AgentActions {
   handleModelSubmit: () => void;
 
   // --- NEW ACTIONS for the sophisticated workflow ---
+  generateThoughts: () => Promise<void>;
+  setAgentThoughts: (thoughts: string) => void;
   generateFinalPrompt: () => Promise<void>;
   generateSinglePrompt: (personaTerm: string) => Promise<void>;
   generatePromptCards: () => Promise<void>;
   executePromptCard: (index: number) => Promise<void>;
   executePrompt: (prompt: string, personaTerm: string) => Promise<void>;
-  logAgentMessage: (message: string) => void;
-  processPromptQueue: () => void;
+
   reset: () => void;
   // START ADDITION 2: Orchestrator action
   runAutonomousWorkflow: (initialTopic: string) => Promise<void>;
   // END ADDITION 2
-
-// ==============================================================================
-// 3. STORE CREATION
-// Combining state and actions into the final Zustand store.
-// ==============================================================================
-export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
+}
   // --- INITIAL STATE VALUES (Adding liveHistory) ---
   currentStep: 'topic',
   isAppLoading: true,
@@ -154,15 +143,6 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
 
   // ✨ NEW: Initialize agent log
   agentLog: [],
-
-  // --- NEW FOR THEME SYSTEM ---
-  theme: 'dark', // ✨ NEW: Default theme is dark
-
-  // ✨ NEW: Session history and saved prompts for sidebar
-  sessionHistory: [],
-  savedPrompts: [],
-
-  // --- ACTION IMPLEMENTATIONS ---
 
   /**
    * Initializes the application. Fetches DYNAMIC models and topic suggestions.
@@ -234,41 +214,6 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
   },
 
   /**
-   * Updates the execution model for a specific card
-   */
-  setCardExecutionModel: (personaTerm: string, modelId: string) => {
-    set(state => ({
-      finalPrompts: state.finalPrompts.map(card =>
-        card.personaTerm === personaTerm
-          ? { ...card, executionModel: modelId }
-          : card
-      )
-    }));
-  },
-
-  /**
-   * Centralized logger for agent transparency
-   */
-  logAgentMessage: (message: string) => {
-    set(state => ({ agentLog: [...state.agentLog, message] }));
-  },
-
-  /**
-   * ✨ NEW: Add the theme-setting action
-   */
-  setTheme: (theme: 'light' | 'dark') => set({ theme }),
-
-  processPromptQueue: () => {
-    const { finalPrompts } = get();
-    const queuedCards = finalPrompts.filter(card => card.status === 'queued');
-
-    if (queuedCards.length > 0) {
-      const firstCard = queuedCards[0];
-      get().generateSinglePrompt(firstCard.personaTerm);
-    }
-  },
-
-  /**
    * Handles the submission of the topic.
    * Calls the backend to get DYNAMIC goal suggestions.
    */
@@ -333,7 +278,7 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
       }
 
       const suggestedPersonas = await response.json();
-
+      
       set({
         suggestedPersonas,
         isLoadingPersonas: false,
@@ -361,26 +306,15 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
 
   /**
    * Finalizes the persona selection and moves to the final configuration step.
-   * ✨ FIX: Now creates prompt cards with proper execution model and status
    */
   handlePersonasSubmit: () => {
-    const { selectedPersonas, selectedModel } = get();
+    const { selectedPersonas } = get();
     if (selectedPersonas.length === 0) {
+      // You could show a toast or error here, but for now we just prevent moving on.
       console.warn("No personas selected. Please select at least one.");
       return;
     }
-
-    const promptCards: FinalPromptCard[] = selectedPersonas.map(personaTerm => ({
-      personaTerm,
-      prompt: '',
-      status: 'queued' as const,
-      isGeneratingPrompt: false,
-      isGeneratingOutput: false,
-      executionModel: selectedModel, // ✨ FIX: Use the selected model for each card
-    }));
-
-    set({ finalPrompts: promptCards, currentStep: 'results' });
-    setTimeout(() => get().processPromptQueue(), 100);
+    set({ currentStep: 'model' });
   },
 
   /**
@@ -388,6 +322,7 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
    */
   generateThoughts: async () => {
     const { selectedModel, topic, goal, selectedPersonas } = get();
+    // We now go directly to the 'refinement' step, which will show the live stream.
     set({ currentStep: 'refinement', agentError: null, agentThoughts: '' });
 
     try {
@@ -423,15 +358,18 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
+      // ✨ KEY CHANGE: The UI state is updated INSIDE the loop ✨
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) break; // Exit the loop when the stream is finished
 
         const decodedChunk = decoder.decode(value);
         const cleanText = parseAIStreamChunk(decodedChunk);
 
+        // This updates the state with every new piece of text, triggering a live UI update.
         set((state) => ({ agentThoughts: state.agentThoughts + cleanText }));
       }
+      // No need to do anything after the loop finishes. The UI is already up to date.
 
     } catch (error: any) {
       set({ agentError: error.message, currentStep: 'model' });
@@ -442,15 +380,16 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
    * ✨ RENAMED ACTION: This is now clearer.
    */
   setAgentThoughts: (thoughts: string) => set({ agentThoughts: thoughts }),
-
   /**
    * STEP 2: GENERATE THE FINAL PROMPT USING THE REFINED THOUGHTS
    */
   generateFinalPrompt: async () => {
     const { selectedModel, topic, goal, selectedPersonas, agentThoughts } = get();
+    // Go back to 'generating' for the final prompt creation
     set({ currentStep: 'generating', agentError: null, generationResult: '' });
 
     try {
+      // This prompt uses the (potentially edited) thoughts to create the final prompt.
       const finalPromptInstruction = `
         Using the following thought process as your guide:
         ---THOUGHTS---
@@ -480,6 +419,7 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
+      // Also stream the final result for a great UX
       let fullPromptResponse = '';
 
       while (true) {
@@ -503,13 +443,19 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
    * Now creates prompt cards for parallel generation.
    */
   handleModelSubmit: async () => {
+    // Preserve manual behavior: when not autonomous, just kick off the prompt card generation
     if (!get().isAutonomous) {
+      // Existing behavior changed to use prompt cards
       get().generatePromptCards();
       return;
     }
 
+    // When running in autonomous mode, run the full flow and clean up state.
     try {
+      // Generate prompt cards (this will stream and set results)
       await get().generatePromptCards();
+
+      // Finalize autonomous run
       set({ currentStep: 'results', isAutonomous: false, autonomousStatus: 'Workflow Complete!' });
     } catch (error: any) {
       const errMsg = error instanceof Error ? error.message : 'Autonomous generation failed.';
@@ -520,8 +466,10 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
 
   // START ADDITION 2: The new orchestrator action
   runAutonomousWorkflow: async (initialTopic: string) => {
+    // Ensure we don't run it twice
     if (get().isAutonomous) return;
 
+    // A. Kick off the process
     set({
       isAutonomous: true,
       topic: initialTopic,
@@ -532,36 +480,44 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
     const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
 
     try {
+      // B. Select Goals - Now using dynamic suggestions
       set({ autonomousStatus: 'Determining goals...' });
       await wait(1000);
-
+      
+      // Call our dynamic goal suggestion endpoint
       await get().handleTopicSubmit();
-
+      
+      // The goals are now set in state, and if autonomous, the first goal is selected
       const suggestedGoals = get().suggestedGoals;
       if (suggestedGoals.length === 0) {
         throw new Error("No goals were suggested by the AI.");
       }
 
+      // C. Select Persona - Now using dynamic suggestions based on topic and goal
       set({ autonomousStatus: 'Analyzing best personas...' });
       await wait(1000);
-
+      
+      // This will automatically select the top persona when autonomous
       await get().handleGoalSubmit();
-
+      
       const selectedPersonas = get().selectedPersonas;
       if (selectedPersonas.length === 0) {
         throw new Error("No personas were suggested by the AI.");
       }
-
+      
+            // When running autonomously, select ALL suggested personas for a richer synthesis
       const suggestedPersonas = get().suggestedPersonas;
       if (suggestedPersonas.length === 0) {
         throw new Error("No personas were suggested by the AI.");
       }
-
-      set({
+      
+      // Auto-select all suggested personas (up to 3) for a multi-perspective analysis
+      set({ 
         selectedPersonas: suggestedPersonas.slice(0, 3).map(p => p.term),
         autonomousStatus: 'Building your expert team...'
       });
-
+      
+      // D. Select Model
       await wait(1000);
       set({
         autonomousStatus: 'Selecting optimal model...',
@@ -569,8 +525,10 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
         currentStep: 'model'
       });
 
+      // E. Call the final generation function that already exists
       await wait(1000);
       set({ autonomousStatus: 'Preparing to generate...' });
+      // This will run the generation flow and clean up isAutonomous when complete
       await get().handleModelSubmit();
 
     } catch (error: any) {
@@ -578,80 +536,31 @@ export const useAgentStore = create<AgentState & AgentActions>((set, get) => ({
       set({ agentError: 'The autonomous agent failed.', isAutonomous: false });
     }
   },
+  // END ADDITION 2
 
   /**
-   * ✨ FIXED: Generates a prompt for a single persona, using the card's specific model
+   * Generates a prompt for a single persona, handling streaming updates.
    */
   generateSinglePrompt: async (personaTerm: string) => {
-    set(state => ({
-      finalPrompts: state.finalPrompts.map(p =>
-        p.personaTerm === personaTerm ? { ...p, status: 'generating-prompt' } : p
-      )
-    }));
-    get().logAgentMessage(`Generating prompt for ${personaTerm}...`);
-
-    const { topic, goal, selectedPersonas, selectedModel } = get();
-    const card = get().finalPrompts.find(p => p.personaTerm === personaTerm);
-    if (!card || !card.executionModel) {
-      throw new Error(`Model not found for persona ${personaTerm}`);
-    }
+    const { topic, goal, selectedModel } = get();
 
     try {
-      // ✨ THE NEW, DYNAMIC LOGIC STARTS HERE ✨
+      const finalPromptInstruction = `
+        As the **${personaTerm}**, generate a high-quality, dense prompt of **no more than 300 words** to achieve the following:
+        - Topic: "${topic}"
+        - Goal: "${goal}"
 
-      // Step 1: Classify the user's goal.
-      // We ask a fast, cheap model to categorize the goal into "Execution" (doing something)
-      // or "Composition" (writing something).
-      const { text: goalType } = await generateText({
-        model: fireworks('accounts/fireworks/models/llama-v3p1-8b-instruct'), // Fast & cheap model for classification
-        prompt: `Classify the following user goal. Does it describe a task that requires EXECUTION (e.g., building a plan, creating a dataset, running an analysis) or COMPOSITION (e.g., writing an article, drafting a report, creating content)? Respond with ONLY the word "EXECUTION" or "COMPOSITION".
+        Structure the prompt with "HAT BRIEFS" for different expertises and a "MERGE OUTPUT" section for the final structure.
 
-User Goal: "${goal}"`,
-      });
+        ---
+        **BEGIN EXECUTION NOW.** Do not summarize or repeat the instructions. Fulfill the 'Deliverables' section as described above.
+      `;
 
-      get().logAgentMessage(`Goal classified as: ${goalType.trim()}`);
-
-      // Step 2: Construct the appropriate prompt based on the goal type.
-      let finalPromptInstruction;
-
-      if (goalType.trim().toUpperCase() === 'EXECUTION') {
-        // For execution tasks, we use the direct, command-oriented prompt.
-        finalPromptInstruction = `
-          Your SOLE function is to act as the **${personaTerm}** and execute a plan to achieve the user's goal.
-
-          **Project:**
-          - Topic: "${topic}"
-          - Goal: "${goal}"
-          - Your Team: ${selectedPersonas.join(', ')}
-
-          **Your Task:**
-          Generate the tangible 'Deliverables' that YOU are responsible for. Invent any necessary data to create a realistic example. Do not explain the process; perform it. Generate the output directly.
-
-          ---
-          **BEGIN EXECUTION IMMEDIATELY.**
-        `;
-      } else { // Default to 'COMPOSITION'
-        // For composition tasks, we ask the AI to structure a high-quality prompt for another AI.
-        finalPromptInstruction = `
-          Your primary role is the **${personaTerm}**.
-
-          Generate a high-quality, dense prompt (max 300 words) that outlines YOUR SPECIFIC contribution to the team's goal.
-
-          **Project:**
-          - Topic: "${topic}"
-          - Goal: "${goal}"
-          - Your Team: ${selectedPersonas.filter(p => p !== personaTerm).join(', ')}
-
-          Frame the prompt as a set of instructions for another AI that will execute ONLY YOUR part of the project. Detail the inputs you need, the process to follow, and the concrete deliverables.
-        `;
-      }
-
-      // Step 3: Fetch the response with the dynamically chosen prompt.
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: card.executionModel, // Use the correct model from the card
+          model: selectedModel,
           history: [{ role: 'user', content: finalPromptInstruction }],
         }),
       });
@@ -673,8 +582,10 @@ User Goal: "${goal}"`,
         set(state => ({
           finalPrompts: state.finalPrompts.map(p => {
             if (p.personaTerm === personaTerm) {
+              // For the first chunk, replace the placeholder text.
+              // For subsequent chunks, append.
               const newPrompt = isFirstChunk ? cleanText : p.prompt + cleanText;
-              isFirstChunk = false;
+              isFirstChunk = false; // Unset the flag after the first chunk
               return { ...p, prompt: newPrompt };
             }
             return p;
@@ -682,24 +593,20 @@ User Goal: "${goal}"`,
         }));
       }
 
+      // After the stream is complete, set the loading state to false for this card.
       set(state => ({
         finalPrompts: state.finalPrompts.map(p =>
-          p.personaTerm === personaTerm ? { ...p, status: 'complete' } : p
+          p.personaTerm === personaTerm ? { ...p, isGeneratingPrompt: false } : p
         ),
       }));
-
-      get().logAgentMessage(`Prompt for ${personaTerm} complete.`);
 
     } catch (error: any) {
-      get().logAgentMessage(`Error for ${personaTerm}: ${error.message}`);
+      // If an error occurs, update the specific card to show the error.
       set(state => ({
         finalPrompts: state.finalPrompts.map(p =>
-          p.personaTerm === personaTerm ? { ...p, prompt: `Error: ${error.message}`, status: 'error' } : p
+          p.personaTerm === personaTerm ? { ...p, prompt: `Error: ${error.message}`, isGeneratingPrompt: false } : p
         ),
       }));
-    } finally {
-      // ✨ CRITICAL: After this card is done (success or fail), process the next one.
-      get().processPromptQueue();
     }
   },
 
@@ -708,8 +615,9 @@ User Goal: "${goal}"`,
    * This is our new action that replaces the old generateThoughts
    */
   generatePromptCards: async () => {
-    const { selectedPersonas, selectedModel } = get();
+    const { selectedPersonas } = get();
 
+    // First, set loading state and clear any previous prompts
     set({ isGenerating: true, agentError: null });
 
     try {
@@ -719,11 +627,10 @@ User Goal: "${goal}"`,
         prompt: "Generating prompt for " + persona + "...",
         output: undefined,
         isGeneratingPrompt: true,
-        isGeneratingOutput: false,
-        executionModel: selectedModel, // ✨ FIX: Use the selected model for each card
-        status: 'generating-prompt' as const
+        isGeneratingOutput: false
       }));
 
+      // Set initial cards
       set({ finalPrompts: initialCards });
 
       // Generate prompts for each persona
@@ -731,8 +638,10 @@ User Goal: "${goal}"`,
         get().generateSinglePrompt(persona)
       );
 
+      // Wait for all prompts to finish generating
       await Promise.all(promptPromises);
 
+      // Done with generation, move to results
       set({ isGenerating: false, currentStep: 'results' });
 
     } catch (error: any) {
@@ -753,9 +662,10 @@ User Goal: "${goal}"`,
     const card = finalPrompts[index];
     if (!card || card.isGeneratingOutput) return;
 
+    // Update loading state for this card
     set({
-      finalPrompts: finalPrompts.map((c, i) =>
-        i === index ? { ...c, isGeneratingOutput: true, status: 'generating-output' } : c
+      finalPrompts: finalPrompts.map((c, i) => 
+        i === index ? { ...c, isGeneratingOutput: true } : c
       )
     });
 
@@ -785,6 +695,7 @@ User Goal: "${goal}"`,
         const cleanText = parseAIStreamChunk(decodedChunk);
         output += cleanText;
 
+        // Update the card's output as it streams in
         set({
           finalPrompts: finalPrompts.map((c, i) =>
             i === index ? { ...c, output } : c
@@ -792,18 +703,20 @@ User Goal: "${goal}"`,
         });
       }
 
+      // Update the final state of the card
       set({
         finalPrompts: finalPrompts.map((c, i) =>
-          i === index ? { ...c, output, isGeneratingOutput: false, status: 'complete' } : c
+          i === index ? { ...c, output, isGeneratingOutput: false } : c
         )
       });
 
     } catch (error: any) {
       console.error('Failed to execute prompt:', error);
-
+      
+      // Update the card to show the error
       set({
         finalPrompts: finalPrompts.map((c, i) =>
-          i === index ? { ...c, output: 'Error: ' + error.message, isGeneratingOutput: false, status: 'error' } : c
+          i === index ? { ...c, output: 'Error: ' + error.message, isGeneratingOutput: false } : c
         ),
         agentError: error.message || 'Failed to execute prompt'
       });
@@ -811,28 +724,26 @@ User Goal: "${goal}"`,
   },
 
   /**
-   * Executes a prompt for a specific persona using the card's specific model
+   * Executes a prompt for a specific persona
    */
   executePrompt: async (prompt: string, personaTerm: string) => {
-    const { finalPrompts } = get();
+    const { finalPrompts, selectedModel } = get();
     const index = finalPrompts.findIndex(card => card.personaTerm === personaTerm);
     if (index === -1 || finalPrompts[index].isGeneratingOutput) return;
 
+    // Update loading state for this card
     set({
-      finalPrompts: finalPrompts.map((c, i) =>
-        i === index ? { ...c, isGeneratingOutput: true, status: 'generating-output' } : c
+      finalPrompts: finalPrompts.map((c, i) => 
+        i === index ? { ...c, isGeneratingOutput: true } : c
       )
     });
-
-    const card = finalPrompts[index];
-    get().logAgentMessage(`Executing prompt for ${personaTerm} using ${card.executionModel.split('/').pop()}...`);
 
     try {
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: card.executionModel, // ✨ FIX: Use the card's specific model
+          model: selectedModel,
           history: [{ role: 'user', content: prompt }],
         }),
       });
@@ -853,6 +764,7 @@ User Goal: "${goal}"`,
         const cleanText = parseAIStreamChunk(decodedChunk);
         output += cleanText;
 
+        // Update the card's output as it streams in
         set({
           finalPrompts: finalPrompts.map((c, i) =>
             i === index ? { ...c, output } : c
@@ -860,20 +772,20 @@ User Goal: "${goal}"`,
         });
       }
 
+      // Update the final state of the card
       set({
         finalPrompts: finalPrompts.map((c, i) =>
-          i === index ? { ...c, output, isGeneratingOutput: false, status: 'complete' } : c
+          i === index ? { ...c, output, isGeneratingOutput: false } : c
         )
       });
 
-      get().logAgentMessage(`Execution for ${personaTerm} complete.`);
-
     } catch (error: any) {
       console.error('Failed to execute prompt:', error);
-
+      
+      // Update the card to show the error
       set({
         finalPrompts: finalPrompts.map((c, i) =>
-          i === index ? { ...c, output: 'Error: ' + error.message, isGeneratingOutput: false, status: 'error' } : c
+          i === index ? { ...c, output: 'Error: ' + error.message, isGeneratingOutput: false } : c
         ),
         agentError: error.message || 'Failed to execute prompt'
       });
@@ -894,15 +806,9 @@ User Goal: "${goal}"`,
       suggestedPersonas: [],
       finalPrompts: [],
       agentError: null,
-      liveHistory: [],
+      liveHistory: [], // Also clear history on reset
       agentThoughts: '',
       generationResult: '',
-      isAutonomous: false,
-      autonomousStatus: '',
-      agentLog: [],
-      sessionHistory: [],
-      savedPrompts: [],
-      theme: 'dark', // ✨ NEW: Reset to default theme
     });
   }
 }));

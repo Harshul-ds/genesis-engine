@@ -1,0 +1,106 @@
+/* PersonaStep.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.container h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--on-surface-primary);
+  text-align: left;
+  margin: 0 0 0.25rem 0;
+}
+.container p {
+  font-size: 1rem;
+  color: var(--on-surface-secondary);
+  text-align: left;
+  margin: 0 0 1.5rem 0;
+}
+
+.contextDisplay {
+  background-color: var(--input-background);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--border);
+}
+
+.contextDisplay p {
+  margin: 0.5rem 0;
+  color: var(--on-surface-secondary);
+}
+.contextDisplay strong {
+  color: var(--on-surface-primary);
+  font-weight: 700;
+}
+
+.personaGrid {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
+  gap: 1rem;
+  overflow-y: auto;
+  padding-right: 1rem;
+}
+
+.personaCard {
+  background-color: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.personaCard:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px var(--accent-glow);
+}
+
+.personaCard.selected {
+  border-color: var(--primary);
+  background-color: var(--accent-glow);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.personaCard h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--on-surface-primary);
+  font-size: 1.1rem;
+}
+
+.personaCard p {
+  margin: 0;
+  color: var(--on-surface-secondary);
+  font-size: 0.9rem;
+}
+
+.nextButton {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border: none;
+}
+
+.nextButton:disabled {
+  background: var(--input-background);
+  color: var(--on-surface-tertiary);
+  cursor: not-allowed;
+}
+
+.loader {
+  text-align: center;
+  padding: 4rem;
+  color: var(--on-surface-secondary);
+  font-size: 1.2rem;
+}

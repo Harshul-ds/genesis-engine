@@ -1,663 +1,78 @@
-/* Genesis Command Center Main Layout */
+/*
+  THE DEFINITIVE FULL-SCREEN & CENTERED CONTENT FIX
+  This uses a modern CSS Grid layout to achieve both goals without conflict.
+*/
+
+.commandCenterContainer {
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--surface); /* The background color is on the main container */
+  display: grid; /* Use Grid for the layout */
+  grid-template-columns: 1fr minmax(auto, 960px) 1fr; /* Create three columns: flexible space, a centered content column, flexible space */
+  overflow-y: auto; /* Allow the whole page to scroll if needed on small screens */
+}
+
+/* This is an empty selector to target the direct child for centering */
+.commandCenterContainer > * {
+  grid-column: 2; /* Place the .genesisCard into the centered middle column */
+}
+
+/*
+  The Genesis Card no longer needs to worry about layout.
+  It is just a simple container for your content.
+*/
 .genesisCard {
-  background: rgba(43, 27, 88, 0.6); /* Deeper purple background */
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  padding: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  
-  /* Flexbox layout to manage scrolling */
-  display: flex;
-  flex-direction: column;
-  height: 100vh; /* Use full viewport height */
-  max-height: 100vh; /* Allow full screen usage */
   width: 100%;
-  max-width: min(90vw, 800px); /* Responsive width - max 90% of viewport or 800px */
-  margin: 0 auto; /* Center the card */
+  padding-top: 5vh; /* Some space at the top */
+  padding-bottom: 5vh; /* Some space at the bottom */
+}
+
+.headerContainer {
+  text-align: center;
+  margin-bottom: 2.5rem;
 }
 
 .header {
-  color: #ffffff;
-  font-size: 2.5rem;
-  font-weight: 800;
-  text-align: center;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  flex-shrink: 0; /* Prevent header from shrinking */
+  font-family: var(--font-serif-display);
+  font-size: 3.5rem;
+  font-weight: 400;
+  margin: 0;
+  color: var(--on-surface-primary);
+}
+
+.subHeader {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--on-surface-secondary);
+  letter-spacing: 0.5px;
+  margin-top: 0.25rem;
 }
 
 .stepper {
   display: flex;
   justify-content: center;
-  gap: 0.75rem;
-  margin: 1.5rem 0;
-  flex-shrink: 0; /* Prevent stepper from shrinking */
+  gap: 8px;
+  margin: 1rem auto 1.5rem auto;
+}
+.stepDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--border);
+}
+.stepDot.active {
+  background-color: var(--primary);
 }
 
 .stepContent {
-  /* This is the key for scrolling! */
-  flex-grow: 1; /* Allows this element to fill available space */
-  overflow-y: auto; /* Adds a scrollbar ONLY when needed */
-  padding-right: 1rem; /* Adds space to prevent content from touching the scrollbar */
-  margin-right: -1rem; /* Offsets the padding to maintain alignment */
-}
-
-/* Custom scrollbar styling (optional but looks great) */
-.stepContent::-webkit-scrollbar {
-  width: 6px;
-}
-
-.stepContent::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.stepContent::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .genesisCard {
-    height: 100vh; /* Full height on mobile */
-    max-height: 100vh;
-    margin: 0; /* Remove margins on mobile for full screen */
-    padding: 1.5rem;
-    border-radius: 0; /* Remove border radius on mobile for full screen */
-  }
-  
-  .header {
-    font-size: 2rem;
-  }
-  
-  .stepper {
-    margin: 1rem 0;
-  }
-}
-
-/* Large screen optimization */
-@media (min-width: 1200px) {
-  .genesisCard {
-    max-width: min(80vw, 900px); /* Slightly larger on very large screens */
-  }
-}
-
-/* Styles for Genesis Command Center Steps */
-
-/* Step 1: Topic Input */
-.topicContainer {
-  width: 100%;
-  text-align: left;
-}
-
-.topicTitle {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.topicSubtitle {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
-}
-
-/* Topic Form */
-.topicForm {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-.topicInput {
-  width: 100%;
-  padding: 20px 24px;
-  border-radius: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  font-size: 1.1rem;
-  min-height: 60px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(20px);
-}
-
-.topicInput::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.topicInput:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.15), 0 12px 40px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
-}
-
-.topicSubmitButton {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  font-size: 1.1rem;
-  padding: 18px 32px;
-  width: 100%;
-  border-radius: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(20px);
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.topicSubmitButton::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.6s;
-}
-
-.topicSubmitButton:hover::before {
-  left: 100%;
-}
-
-.topicSubmitButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-}
-
-.topicSubmitButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-/* Step 2: Persona Selection */
-.personaContainer {
-  width: 100%;
-  text-align: left;
-}
-
-.personaTitle {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 0.5rem;
-}
-
-.personaSubtitle {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
-}
-
-.personaToggleLabel {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  cursor: pointer;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(20px);
-  margin-bottom: 1rem;
-}
-
-.personaToggleLabel:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.personaCheckbox {
-  width: 20px;
-  height: 20px;
-  accent-color: #667eea;
-  margin-right: 12px;
-}
-
-.personaToggleText {
-  color: rgba(255, 255, 255, 0.95);
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.manualInputContainer {
-  padding: 1.5rem;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  margin-top: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-}
-
-.manualInputLabel {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-  display: block;
-}
-
-.manualInput {
-  width: 100%;
-  padding: 16px 20px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  color: #ffffff;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 1rem;
-  backdrop-filter: blur(20px);
-}
-
-.manualInput:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
-}
-
-.manualInput::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.personaGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.personaItem {
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 1rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  backdrop-filter: blur(20px);
-}
-
-.personaItem:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.personaItem.active {
-  background-color: #4a417a;
-  border-color: #a885ff;
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-}
-
-.personaItemLabel {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.personaItemCheckbox {
-  width: 18px;
-  height: 18px;
-  accent-color: #667eea;
-}
-
-.personaItemContent strong {
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 1rem;
-  font-weight: 600;
-  display: block;
-  margin-bottom: 0.25rem;
-}
-
-.personaItemContent p {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.85rem;
-  margin: 0;
-  line-height: 1.4;
-}
-
-/* Step 3: Goal Input */
-.goalContainer {
+  /* This div is no longer needed for layout, only for semantic grouping */
   width: 100%;
 }
 
-.goalTitle {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 0.5rem;
-}
-
-.goalSubtitle {
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.goalSuggestion {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 0.75rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.95rem;
-}
-
-.goalSuggestion:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.goalTextarea {
-  width: 100%;
-  padding: 20px 24px;
-  border-radius: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  font-size: 1.1rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(20px);
-  min-height: 120px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  resize: vertical;
-}
-
-.goalTextarea:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.15), 0 12px 40px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
-}
-
-.goalTextarea::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-/* Topic Suggestions */
-.topicSuggestions {
-  margin-bottom: 2rem;
-}
-
-.topicSuggestionsTitle {
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.topicSuggestionsGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.topicSuggestion {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 12px 16px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.9rem;
-  text-align: center;
-}
-
-.topicSuggestion:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.refreshButton {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
-}
-
-.refreshButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-1px);
-}
-
-.refreshButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Step 4: Model Selection */
-.modelContainer {
-  width: 100%;
-}
-
-.modelTitle {
-  font-size: 1.75rem;
-  border-radius: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  font-size: 1.1rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(20px);
-  min-height: 60px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  margin-bottom: 1.5rem;
-}
-
-.modelSelector:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.15), 0 12px 40px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
-}
-
-.modelSelector option {
-  background: #2c3e50;
-  color: #ffffff;
-}
-
-.generateButton {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-  color: white;
-  border: none;
-  padding: 18px 32px;
-  border-radius: 16px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-}
-
-.generateButton::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.6s;
-}
-
-.generateButton:hover::before {
-  left: 100%;
-}
-
-.generateButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, #ee5a24 0%, #d63031 100%);
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(255, 107, 107, 0.4);
-}
-
-.generateButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
-/* START ADDITION: Styles for the Autonomous Header */
-.autonomousHeader {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  color: #a885ff;
-  border: 1px solid rgba(168, 133, 255, 0.3);
-}
-
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .personaGrid {
-    grid-template-columns: 1fr;
-  }
-  
-  .topicSuggestionsGrid {
-    grid-template-columns: 1fr;
-  }
-  
-  .topicInput,
-/* END ADDITION */
-  .goalTextarea,
-  .modelSelector {
-    padding: 16px 20px;
-    font-size: 1rem;
-    min-height: 50px;
-  }
-  
-  .topicSubmitButton,
-  .generateButton {
-    padding: 16px 24px;
-    font-size: 1rem;
-  }
-}
-
-/* Results Step Styles */
-.resultsContainer {
-  width: 100%;
-  text-align: center;
-  padding: 2rem 0;
-}
-
-.resultsTitle {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 0.5rem;
-}
-
-.resultsSubtitle {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  margin-bottom: 2rem;
-}
-
-.generationResult {
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  backdrop-filter: blur(20px);
-  text-align: left;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.generationContent {
-  color: #ffffff;
-  font-size: 1rem;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-.copyButton {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(20px);
-}
-
-.copyButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.noResult {
-  color: rgba(255, 255, 255, 0.6);
-  font-style: italic;
-  margin-bottom: 2rem;
-}
-
-.resetButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 16px 32px;
-  border-radius: 16px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
-}
-
-.resetButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+.themeToggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  /* ... rest of your theme toggle styles */
 }

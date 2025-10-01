@@ -1,83 +1,58 @@
-// src/components/app/wizard-steps/GoalStep.tsx
-'use client';
-
 import React from 'react';
 import { useAgentStore } from '../../../lib/agent-store';
-import styles from '../GenesisCommandCenter.module.css';
+import styles from './GoalStep.module.css'; // We will create new styles for this
 
-export const GoalStep = () => {
-  // Select all the state and actions this component needs from the central store.
-  const {
-    goal,
-    setGoal,
-    suggestedGoals,
-    isLoadingGoals,
-    handleGoalSubmit
-  } = useAgentStore(state => ({
-    goal: state.goal,
-    setGoal: state.setGoal,
-    suggestedGoals: state.suggestedGoals,
-    isLoadingGoals: state.isLoadingGoals,
-    handleGoalSubmit: state.handleGoalSubmit,
-  }));
+export const GoalStep: React.FC = () => {
+  const { 
+    goal, 
+    setGoal, 
+    suggestedGoals, 
+    handleGoalSubmit,
+    isLoadingGoals 
+  } = useAgentStore();
 
   return (
-    <div className={styles.goalContainer}>
-      <h3 className={styles.goalTitle}>What are your goals?</h3>
-      <p className={styles.goalSubtitle}>Select or refine your objectives for this topic.</p>
+    <div className={styles.container}>
+      <h2>What are your goals?</h2>
+      <p>Select or refine your objectives for this topic.</p>
 
-      {/* --- Loading State --- */}
-      {isLoadingGoals ? (
-        <div className={styles.loadingOverlay}>
-          <div className={styles.loadingSpinner}></div>
-          <p style={{ marginTop: '1rem', color: 'rgba(255, 255, 255, 0.8)' }}>
-            Generating goal suggestions...
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* --- AI-Generated Goal Suggestions --- */}
-          {suggestedGoals.length > 0 && (
-            <div className={styles.goalSuggestions}>
-              <h4 className={styles.goalSuggestionsTitle}>💡 AI-Generated Goal Suggestions</h4>
-              <div className={styles.goalSuggestionsGrid}>
-                {suggestedGoals.map((suggestion, index) => (
-                  <div
-                    key={index}
-                    className={styles.goalSuggestion}
-                    onClick={() => setGoal(suggestion)}
-                  >
-                    ✨ {suggestion}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* --- Custom Goal Input --- */}
-          <div className={styles.customGoalSection}>
-            <label className={styles.customGoalLabel}>
-              Or write your own goal:
-            </label>
-            <textarea
-              className={styles.goalTextarea}
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-              placeholder="e.g., Create a comprehensive business plan, develop marketing content, design educational materials..."
-              rows={4}
-            />
+      {/* Textarea for custom user input, now at the top */}
+      <textarea
+        className={styles.goalTextarea}
+        value={goal}
+        onChange={(e) => setGoal(e.target.value)}
+        placeholder="Or write your own goal here..."
+      />
+      
+      {/* AI Suggestions Section */}
+      <div className={styles.suggestions}>
+        <p>✦ AI-Generated Goal Suggestions</p>
+        {isLoadingGoals ? (
+          <div className={styles.loader}>Generating suggestions...</div>
+        ) : (
+          <div className={styles.goalGrid}>
+            {suggestedGoals.map((suggestion, index) => (
+              <button
+                key={index}
+                // Apply a 'selected' class if this is the current goal
+                className={`${styles.goalChip} ${goal === suggestion ? styles.selected : ''}` }
+                onClick={() => setGoal(suggestion)}
+              >
+                {suggestion}
+              </button>
+            ))}
           </div>
+        )}
+      </div>
 
-          {/* --- Submit Button --- */}
-          <button
-            className={styles.topicSubmitButton}
-            onClick={handleGoalSubmit}
-            disabled={!goal.trim()}
-          >
-            Next: Choose Personas
-          </button>
-        </>
-      )}
+      {/* The main action button is now at the bottom */}
+      <button 
+        className={styles.nextButton}
+        onClick={handleGoalSubmit} 
+        disabled={!goal.trim()}
+      >
+        Next: Choose Personas
+      </button>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 // src/components/app/GenesisCommandCenter.tsx
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAgentStore } from '../../lib/agent-store';
 import { AppData, Step } from '../../lib/types';
 import styles from './GenesisCommandCenter.module.css';
@@ -24,9 +24,34 @@ interface GenesisCommandCenterProps {
   appData: AppData;
 }
 
+// ✨ UPGRADED ThemeToggle Component
+const ThemeToggle = () => {
+  // Read the theme and the action from the central store
+  const { theme, setTheme } = useAgentStore();
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme); // Update the global state
+  };
+
+  // This effect now listens to the global state and updates the document
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  return (
+    <button onClick={toggleTheme} className={styles.themeToggle}>
+      {theme === 'light' ? '🌙' : '☀️'}
+    </button>
+  );
+};
+
 // A simple component for the loading state
 const LoadingView = () => (
-  <div className={styles.loadingContainer}>Loading Genesis Engine...</div>
+  <div className={styles.loadingContainer}>
+    <div className={styles.spinner}></div>
+    <span>Loading Genesis Engine...</span>
+  </div>
 );
 
 // A simple component for the error state
@@ -97,6 +122,9 @@ export const GenesisCommandCenter: React.FC<GenesisCommandCenterProps> = ({ appD
 
   return (
     <div className={styles.commandCenterContainer}>
+      {/* The theme toggle is placed outside the main card for easy access */}
+      <ThemeToggle />
+
       <div className={styles.genesisCard}>
         {/* START ADDITION: The Autonomous Status Header */}
         {isAutonomous && (
@@ -107,7 +135,11 @@ export const GenesisCommandCenter: React.FC<GenesisCommandCenterProps> = ({ appD
         )}
         {/* END ADDITION */}
 
-        <h1 className={styles.header}>Genesis Command Center</h1>
+        {/* ✨ NEW: Header Container with Subheading */}
+        <div className={styles.headerContainer}>
+          <h1 className={styles.header}>Genesis</h1>
+          <p className={styles.subHeader}>Thought to Prompt</p>
+        </div>
 
         {!isAppLoading && !agentError && renderStepIndicator()}
 

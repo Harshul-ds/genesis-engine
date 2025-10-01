@@ -1,23 +1,48 @@
 // src/pages/api/suggest-topics.ts
 import { NextApiRequest, NextApiResponse } from 'next';
-// Import our new self-healing utilities!
-import { getBestHelperModel } from '../../lib/model-utils';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // 1. Dynamically fetch ALL available models and select the best helper model.
+    const tavilyApiKey = process.env.TAVILY_API_KEY;
+    if (!tavilyApiKey) {
+      throw new Error("Tavily API key is not configured.");
+    }
+
+    // 1. Search for recent, high-level tech and science news using Tavily API
+    const searchResponse = await fetch('https://api.tavily.com/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        api_key: tavilyApiKey,
+        query: "latest breakthroughs in technology, science, and society",
+        search_depth: "basic",
+        max_results: 5,
+        include_raw_content: false,
+      }),
+    });
+
+    if (!searchResponse.ok) {
+      throw new Error(`Tavily API error: ${searchResponse.status} - ${searchResponse.statusText}`);
+    }
+
+    const searchData = await searchResponse.json();
+
+    // 2. Use the search results as context for generating creative topics
+    const context = searchData.results?.map((r: any) => `- ${r.title}: ${r.content || r.description || ''}`).join('\n') || '';
+
+    // 3. Generate topics using Fireworks AI with the search context
+    const { getBestHelperModel } = await import('../../lib/model-utils');
     const { model: helperModel } = await getBestHelperModel();
 
-    console.log(`[suggest-topics] Dynamically selected helper model: ${helperModel.id}` );
+    const prompt = `Based on the following recent news and breakthroughs, generate a list of exactly 4 fascinating and forward-thinking project topics. The topics should be inspiring and non-obvious. Return ONLY the topics, each on a new line. Do not include any numbering or bullet points.
 
-    const prompt = `
-      Provide a list of 8 deeply interesting, multidisciplinary topics that would be
-      excellent starting points for an AI-powered creative or strategic session.
-      Format the output as a JSON array of strings. Do not include any other text.
-      Example: ["The future of decentralized science (DeSci)", "The philosophy of post-humanism", "Sustainable fashion and eco-friendly textiles", "AI-powered personal finance management", "Remote work productivity tools", "Mental health and wellness apps", "Blockchain applications in supply chain", "Renewable energy storage solutions"]
-    `;
+Context from today's news:
+${context}
 
-    // 2. USE the dynamically selected model ID in the API call.
+Generate topics that would be excellent starting points for creative or strategic AI sessions.`;
+
     const response = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -26,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         'Accept': 'application/json',
       },
       body: JSON.stringify({
-        model: helperModel.id, // No more hardcoded value!
+        model: helperModel.id,
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 400,
         temperature: 0.8,
@@ -44,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error("No content in AI response.");
     }
 
-    // Try to parse as JSON array
+    // Parse the topics from the response
     let topicsArray: string[] = [];
     try {
       // First, try to extract JSON from the response
@@ -53,36 +78,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         topicsArray = JSON.parse(jsonMatch[0]);
       } else {
         // Fallback: split by newlines and clean up
-        topicsArray = content.split('\n')
-          .map((line: string) => line.trim())
-          .filter((line: string) => line.length > 10 && line.length < 100)
-          .slice(0, 8);
+        topicsArray = content
+          .split('\n')
+          .map(t => t.trim()) // Trim whitespace from each line
+          // Filter out empty lines AND any line that looks like a preamble/heading.
+          .filter(t => t && !t.toLowerCase().includes('here are') && !t.toLowerCase().includes('project topics'))
+          .slice(0, 4);
       }
     } catch (parseError) {
       // Fallback: split by newlines and clean up
       topicsArray = content.split('\n')
-        .map((line: string) => line.replace(/^\d+\.\s*/, '').trim())
-        .filter((line: string) => line.length > 10 && line.length < 100)
-        .slice(0, 8);
+        .map((line: string) => line.replace(/^\d+\.\s*/, '').replace(/^-+\s*/, '').trim())
+        .filter((line: string) => line && !line.toLowerCase().includes('here are') && !line.toLowerCase().includes('project topics'))
+        .slice(0, 4);
     }
 
-    // Ensure we have at least some topics
     if (topicsArray.length === 0) {
       topicsArray = [
         'Sustainable fashion and eco-friendly textiles',
         'AI-powered personal finance management',
         'Remote work productivity tools',
-        'Mental health and wellness apps',
-        'Blockchain applications in supply chain',
-        'Renewable energy storage solutions',
-        'Autonomous vehicle safety systems',
-        'Personalized learning platforms'
+        'Mental health and wellness apps'
       ];
     }
 
     res.status(200).json(topicsArray);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating topic suggestions:", error);
 
     // Return fallback topics on error - ensures UX never breaks
@@ -90,11 +112,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       'Sustainable fashion and eco-friendly textiles',
       'AI-powered personal finance management',
       'Remote work productivity tools',
-      'Mental health and wellness apps',
-      'Blockchain applications in supply chain',
-      'Renewable energy storage solutions',
-      'Autonomous vehicle safety systems',
-      'Personalized learning platforms'
+      'Mental health and wellness apps'
     ]);
   }
 }

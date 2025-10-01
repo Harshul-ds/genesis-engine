@@ -1,0 +1,100 @@
+/* ModelStep.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.container h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--on-surface-primary);
+  text-align: left;
+  margin: 0 0 0.25rem 0;
+}
+.container p {
+  font-size: 1rem;
+  color: var(--on-surface-secondary);
+  text-align: left;
+  margin: 0 0 1.5rem 0;
+}
+
+.summaryCard {
+  background-color: var(--input-background);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.summaryItem {
+  margin-bottom: 1rem;
+}
+.summaryItem:last-child {
+  margin-bottom: 0;
+}
+
+.summaryItem span {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--on-surface-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summaryItem p {
+  font-size: 1rem;
+  color: var(--on-surface-primary);
+  margin: 0.25rem 0 0 0;
+  font-weight: 500;
+}
+
+.modelSelection {
+  margin-top: auto; /* Push this section to the bottom */
+  padding-top: 2rem; /* Add some space above */
+  border-top: 1px solid var(--border);
+}
+
+.modelSelection label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--on-surface-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.modelSelect {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  background-color: var(--surface);
+  border: 2px solid var(--border);
+  color: var(--on-surface-primary);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+}
+
+.generateButton {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}

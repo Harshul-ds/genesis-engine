@@ -10,9 +10,16 @@ export default function HomePage({ appData }: { appData: AppData | null }) {
 // This is the only function that needs to be fixed.
 export const getServerSideProps: GetServerSideProps = async () => {
   try {
+    // ✨ KEY CHANGE: We construct the full, absolute URL for server-side execution.
+    // This dynamically uses the Vercel URL in production or localhost in development.
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'http://localhost:3000';
+
+    // We now use this `baseUrl`  for all server-side fetch calls.
     const [optionsRes, modelsRes] = await Promise.all([
-      fetch('/api/get-options'),
-      fetch('/api/list-models')
+      fetch(`${baseUrl}/api/get-options` ),
+      fetch(`${baseUrl}/api/list-models` )
     ]);
 
     if (!optionsRes.ok) throw new Error("Failed to fetch app options.");
