@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAgentStore } from '../../lib/agent-store';
 import styles from './Sidebar.module.css';
 // You'll need an icon library, e.g., `npm install react-icons`
@@ -6,6 +6,10 @@ import { FaHistory, FaSave, FaBars, FaTimes } from 'react-icons/fa';
 
 export const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+
+  useEffect(() => {
+    setIsExpanded(false);
+  }, []);
   const [activeTab, setActiveTab] = useState<'history' | 'saved'>('history');
   const { sessionHistory, savedPrompts } = useAgentStore();
 
