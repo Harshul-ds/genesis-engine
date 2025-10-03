@@ -62,32 +62,33 @@ interface AgentState {
 
   // --- AI-GENERATED STATE ---
   suggestedGoals: string[];
-  suggestedPersonas: any[],
+  suggestedPersonas: any[];
   // --- OUTPUT STATE ---
   finalPrompts: FinalPromptCard[]; // Now using our new card type
 
   // --- NEW FOR PHASE 5 ---
-  liveHistory: AgentStreamEvent[],
+  liveHistory: AgentStreamEvent[];
 
   // ✨ SIMPLIFIED STATE: We only need one 'thoughts' variable now.
-  agentThoughts: string, 
-  generationResult: string,
+  agentThoughts: string;
+  generationResult: string;
   // START ADDITION 1: New state variables for the autonomous agent
   isAutonomous: boolean;
   autonomousStatus: string;
   // END ADDITION 1
 
   // ✨ NEW: A log to show the agent's work
-  agentLog: string[],
+  agentLog: string[];
 
   // --- NEW FOR THEME SYSTEM ---
   theme: 'light' | 'dark'; // ✨ NEW: To track the current theme
 
   // ✨ NEW: Session history and saved prompts for sidebar
-  sessionHistory: AgentStreamEvent[],
-  savedPrompts: GeneratedPrompt[],
-
+  sessionHistory: AgentStreamEvent[];
+  savedPrompts: GeneratedPrompt[];
 }
+
+// ==============================================================================
 // 2. ACTIONS DEFINITION
 // All the functions that can change the state. These are the "verbs".
 // ==============================================================================
@@ -100,6 +101,7 @@ interface AgentActions {
   setGoal: (goal: string) => void;
   setSelectedModel: (modelId: string) => void;
   setCardExecutionModel: (personaTerm: string, modelId: string) => void;
+  setTheme: (theme: 'light' | 'dark') => void;
 
   // --- WIZARD NAVIGATION & LOGIC ---
   handleTopicSubmit: () => Promise<void>;
@@ -120,6 +122,7 @@ interface AgentActions {
   // START ADDITION 2: Orchestrator action
   runAutonomousWorkflow: (initialTopic: string) => Promise<void>;
   // END ADDITION 2
+}
 
 // ==============================================================================
 // 3. STORE CREATION
