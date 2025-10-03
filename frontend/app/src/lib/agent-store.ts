@@ -121,6 +121,7 @@ interface AgentActions {
   reset: () => void;
   // START ADDITION 2: Orchestrator action
   runAutonomousWorkflow: (initialTopic: string) => Promise<void>;
+  setAgentThoughts: (thoughts: string) => void;
   // END ADDITION 2
 }
 

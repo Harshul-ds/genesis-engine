@@ -7,7 +7,6 @@ import styles from './RefinementStep.module.css';
 export const RefinementStep: React.FC = () => {
   const {
     agentThoughts,
-    setAgentThoughts, // Use the renamed action
     generateFinalPrompt,
   } = useAgentStore();
 
@@ -32,8 +31,7 @@ export const RefinementStep: React.FC = () => {
           <textarea
             className={styles.editableThoughts}
             value={agentThoughts}
-            onChange={(e) => setAgentThoughts(e.target.value)}
-          />
+                      />
         ) : (
           // VIEW MODE: Render the live-streaming markdown
           <div className={styles.thoughtStream}>
